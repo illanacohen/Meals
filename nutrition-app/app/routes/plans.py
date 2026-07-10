@@ -24,6 +24,7 @@ from app.services.macro_engine import (
     calculate_remaining,
     validate_plan_against_goal,
 )
+from app.services.food_catalog import FoodResolutionError, build_meal_item_fields
 
 router = APIRouter()
 
@@ -180,10 +181,10 @@ def add_meal_to_slot(
 
     meal_data = meal.model_dump(exclude={'slot_id', 'items'})
     meal_db = MealModel(**meal_data, slot_id=slot.id)
-    meal_db.items = [
-        MealItemModel(name=item.name, grams=item.grams)
-        for item in meal.items
-    ]
+    try:
+        meal_db.items = [MealItemModel(**build_meal_item_fields(item)) for item in meal.items]
+    except FoodResolutionError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     db.add(meal_db)
     db.commit()
     db.refresh(meal_db)

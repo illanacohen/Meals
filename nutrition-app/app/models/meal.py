@@ -79,6 +79,8 @@ class MealItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     meal_id = Column(Integer, ForeignKey('meals.id', ondelete='CASCADE'), nullable=False)
     name = Column(String, nullable=False)
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False, default='g')
     grams = Column(Float, nullable=False)
 
     meal = relationship('Meal', back_populates='items')

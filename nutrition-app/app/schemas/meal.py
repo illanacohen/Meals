@@ -1,17 +1,39 @@
 from datetime import date
+from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
+
+
+class MealUnit(str, Enum):
+    g = 'g'
+    unit = 'unit'
+    ml = 'ml'
 
 
 class MealItemCreate(BaseModel):
     name: str
-    grams: float
+    quantity: Optional[float] = None
+    unit: MealUnit = MealUnit.g
+    grams_per_unit: Optional[float] = None
+    # Legacy: if only grams is sent, treat as quantity in grams
+    grams: Optional[float] = None
+
+    @model_validator(mode='after')
+    def resolve_quantity(self):
+        if self.quantity is None and self.grams is not None:
+            self.quantity = self.grams
+            self.unit = MealUnit.g
+        if self.quantity is None:
+            raise ValueError('Provide quantity (and unit), or grams for legacy weight-only items')
+        return self
 
 
 class MealItemResponse(BaseModel):
     id: int
     name: str
+    quantity: float
+    unit: MealUnit
     grams: float
 
     model_config = {

@@ -8,6 +8,7 @@ from app.models.meal import Meal as MealModel
 from app.models.meal import MealItem as MealItemModel
 from app.database.database import get_db
 from app.schemas.meal import MealResponse as MealResponseSchema
+from app.services.food_catalog import FoodResolutionError, build_meal_item_fields
 
 router = APIRouter()
 
@@ -31,14 +32,18 @@ def _get_meal_or_404(meal_id: int, db: Session) -> MealModel:
     return meal_db
 
 
+def _build_items(items) -> list[MealItemModel]:
+    try:
+        return [MealItemModel(**build_meal_item_fields(item)) for item in items]
+    except FoodResolutionError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
 @router.post('/', response_model=MealResponseSchema, status_code=status.HTTP_201_CREATED)
 def create_meal(meal: MealCreateSchema, db: Session = Depends(get_db)):
     meal_data = meal.model_dump(exclude={'items'})
     meal_db = MealModel(**meal_data)
-    meal_db.items = [
-        MealItemModel(name=item.name, grams=item.grams)
-        for item in meal.items
-    ]
+    meal_db.items = _build_items(meal.items)
     db.add(meal_db)
     db.commit()
     return _get_meal_or_404(meal_db.id, db)
@@ -57,10 +62,7 @@ def update_meal(meal_id: int, meal: MealUpdateSchema, db: Session = Depends(get_
 
     if meal.items is not None:
         meal_db.items.clear()
-        meal_db.items = [
-            MealItemModel(name=item.name, grams=item.grams)
-            for item in meal.items
-        ]
+        meal_db.items = _build_items(meal.items)
 
     db.commit()
     return _get_meal_or_404(meal_id, db)

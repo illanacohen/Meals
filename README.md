@@ -28,7 +28,7 @@ En conjunto, estas herramientas buscan **reducir la dependencia de la fuerza de 
 La API implementa:
 
 - CRUD de comidas con macronutrientes (calorías, proteína, grasa, carbohidratos y fibra)
-- **Ingredientes por comida** (`items`: nombre + gramos)
+- **Ingredientes por comida** (`items`: quantity + unit → grams vía catálogo local)
 - **Planes de alimentación diarios** con 4 slots fijos (Desayuno, Almuerzo, Merienda, Cena)
 - **Metas diarias** de macros, con resumen del plan vs objetivo
 
@@ -152,10 +152,11 @@ Content-Type: application/json
   "carbs": 20,
   "fiber": 6,
   "items": [
-    { "name": "pollo", "grams": 150 },
-    { "name": "zanahoria", "grams": 80 },
-    { "name": "zapallito", "grams": 100 },
-    { "name": "cebolla", "grams": 40 }
+    { "name": "pollo", "quantity": 150, "unit": "g" },
+    { "name": "zanahoria", "quantity": 80, "unit": "g" },
+    { "name": "zapallito", "quantity": 100, "unit": "g" },
+    { "name": "cebolla", "quantity": 40, "unit": "g" },
+    { "name": "huevo", "quantity": 2, "unit": "unit" }
   ]
 }
 ```
@@ -173,14 +174,16 @@ Content-Type: application/json
   "fiber": 6,
   "slot_id": null,
   "items": [
-    { "id": 1, "name": "pollo", "grams": 150 },
-    { "id": 2, "name": "zanahoria", "grams": 80 },
-    { "id": 3, "name": "zapallito", "grams": 100 },
-    { "id": 4, "name": "cebolla", "grams": 40 }
+    { "id": 1, "name": "pollo", "quantity": 150, "unit": "g", "grams": 150 },
+    { "id": 2, "name": "zanahoria", "quantity": 80, "unit": "g", "grams": 80 },
+    { "id": 3, "name": "zapallito", "quantity": 100, "unit": "g", "grams": 100 },
+    { "id": 4, "name": "cebolla", "quantity": 40, "unit": "g", "grams": 40 },
+    { "id": 5, "name": "huevo", "quantity": 2, "unit": "unit", "grams": 100 }
   ]
 }
 ```
 
+> **Unidades:** `g`, `unit` (piezas) o `ml`. Para `unit`/`ml`, un catálogo local convierte a gramos (ej. huevo = 50 g). Si el alimento no está en el catálogo, pasá `grams_per_unit` en el item.
 ### Errores
 
 Si se consulta, actualiza o elimina un `meal_id` que no existe, la API responde con `404`:
@@ -211,11 +214,16 @@ Si se consulta, actualiza o elimina un `meal_id` que no existe, la API responde 
 
 Cada elemento de una comida:
 
-| Campo   | Tipo   | Descripción        |
-|---------|--------|--------------------|
-| `id`    | int    | Identificador      |
-| `name`  | string | Ingrediente        |
-| `grams` | float  | Cantidad en gramos |
+| Campo            | Tipo   | Descripción                                      |
+|------------------|--------|--------------------------------------------------|
+| `id`             | int    | Identificador                                    |
+| `name`           | string | Ingrediente                                      |
+| `quantity`       | float  | Cantidad                                         |
+| `unit`           | string | `g`, `unit` o `ml`                               |
+| `grams`          | float  | Equivalente en gramos (calculado)                |
+| `grams_per_unit` | float? | Solo en create: override si no está en catálogo  |
+
+Ejemplo con unidades: `{ "name": "huevo", "quantity": 2, "unit": "unit" }` → `grams: 100`.
 
 Al actualizar una comida, si enviás `items`, se reemplaza la lista completa.
 
