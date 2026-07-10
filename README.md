@@ -229,6 +229,41 @@ Agregar al plan con un clic:
 POST /plans/1/slots/1/from-library/1
 ```
 
+### Suggest (ajustar por macros restantes)
+
+A las 20 hs te quedan macros y pedís una cena: la API arma una receta con **tus** alimentos (preferencias del perfil + biblioteca).
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/suggest/meal` | Generar comida para macros restantes |
+
+Pasá `remaining` explícito **o** `plan_id` (calcula `goal − totales del plan`). Opcional: `save_to_slot` para guardarla en el slot.
+
+```json
+POST /suggest/meal
+{
+  "prompt": "Generame una cena.",
+  "remaining": { "protein": 42, "fat": 18, "carbs": 30 },
+  "slot_position": 4,
+  "preferred_foods": ["pollo", "arroz", "zapallito"],
+  "use_library": true
+}
+```
+
+Desde un plan (y guardar en Cena):
+
+```json
+POST /suggest/meal
+{
+  "prompt": "Generame una cena.",
+  "plan_id": 1,
+  "slot_position": 4,
+  "save_to_slot": true
+}
+```
+
+La respuesta incluye `items`, `macros`, `remaining_before` / `remaining_after`, y `source` (`library` si escaló un favorito, o `generated` desde el catálogo).
+
 ### Ejemplo: crear una comida
 
 **Request**
