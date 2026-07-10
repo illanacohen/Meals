@@ -25,11 +25,13 @@ En conjunto, estas herramientas buscan **reducir la dependencia de la fuerza de 
 
 ## Estado actual
 
-Por ahora la API implementa las **utilidades básicas de gestión de comidas**:
+La API implementa:
 
-- Carga, actualización, eliminación y visualización de comidas con sus macronutrientes (calorías, proteína, grasa, carbohidratos y fibra)
+- CRUD de comidas con macronutrientes (calorías, proteína, grasa, carbohidratos y fibra)
+- **Planes de alimentación diarios** con 4 slots fijos (Desayuno, Almuerzo, Merienda, Cena)
+- **Metas diarias** de macros, con resumen del plan vs objetivo
 
-La gestión de metas, el registro emocional, el contexto de vida y el módulo de coach están planificados como próximas etapas del proyecto.
+El registro emocional, el contexto de vida y el módulo de coach están planificados como próximas etapas.
 
 ## Stack
 
@@ -82,7 +84,7 @@ pip install -r requirements.txt
 alembic upgrade head
 
 # Levantar el servidor
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
 La API queda disponible en `http://127.0.0.1:8000`.
@@ -92,6 +94,8 @@ La API queda disponible en `http://127.0.0.1:8000`.
 
 ## Endpoints
 
+### Meals
+
 | Método   | Ruta              | Descripción              |
 |----------|-------------------|--------------------------|
 | `GET`    | `/`               | Health check             |
@@ -100,6 +104,29 @@ La API queda disponible en `http://127.0.0.1:8000`.
 | `GET`    | `/meals/{meal_id}`| Obtener una comida       |
 | `PUT`    | `/meals/{meal_id}`| Actualizar una comida    |
 | `DELETE` | `/meals/{meal_id}`| Eliminar una comida      |
+
+### Meal Plans
+
+| Método   | Ruta | Descripción |
+|----------|------|-------------|
+| `POST`   | `/plans/` | Crear plan del día (crea 4 slots) |
+| `GET`    | `/plans/` | Listar planes |
+| `GET`    | `/plans/by-date/{date}` | Obtener plan por fecha |
+| `GET`    | `/plans/{plan_id}` | Obtener plan con slots y comidas |
+| `GET`    | `/plans/{plan_id}/summary` | Totales del plan vs meta del día |
+| `POST`   | `/plans/{plan_id}/slots/{position}/meals` | Agregar comida a un slot (1–4) |
+| `DELETE` | `/plans/{plan_id}` | Eliminar plan |
+
+### Daily Goals
+
+| Método   | Ruta | Descripción |
+|----------|------|-------------|
+| `POST`   | `/goals/` | Crear meta diaria |
+| `GET`    | `/goals/` | Listar metas |
+| `GET`    | `/goals/by-date/{date}` | Obtener meta por fecha |
+| `GET`    | `/goals/{goal_id}` | Obtener meta |
+| `PUT`    | `/goals/{goal_id}` | Actualizar meta |
+| `DELETE` | `/goals/{goal_id}` | Eliminar meta |
 
 ### Ejemplo: crear una comida
 
@@ -145,17 +172,26 @@ Si se consulta, actualiza o elimina un `meal_id` que no existe, la API responde 
 
 ## Modelo de datos
 
-Cada comida (`Meal`) tiene:
+### Meal
 
-| Campo      | Tipo    | Descripción        |
-|------------|---------|--------------------|
-| `id`       | int     | Identificador      |
-| `name`     | string  | Nombre de la comida|
-| `calories` | float   | Calorías           |
-| `protein`  | float   | Proteína (g)       |
-| `fat`      | float   | Grasa (g)          |
-| `carbs`    | float   | Carbohidratos (g)  |
-| `fiber`    | float   | Fibra (g)          |
+| Campo      | Tipo    | Descripción              |
+|------------|---------|--------------------------|
+| `id`       | int     | Identificador            |
+| `name`     | string  | Nombre de la comida      |
+| `calories` | float   | Calorías                 |
+| `protein`  | float   | Proteína (g)             |
+| `fat`      | float   | Grasa (g)                |
+| `carbs`    | float   | Carbohidratos (g)        |
+| `fiber`    | float   | Fibra (g)                |
+| `slot_id`  | int?    | Slot del plan (opcional) |
+
+### MealPlan
+
+Un plan por fecha. Al crearlo se generan 4 slots: Desayuno (1), Almuerzo (2), Merienda (3), Cena (4).
+
+### DailyGoal
+
+Una meta de macros por fecha (`calories`, `protein`, `fat`, `carbs`, `fiber`). El endpoint `/plans/{id}/summary` compara los totales del plan con la meta del mismo día.
 
 ## Base de datos
 

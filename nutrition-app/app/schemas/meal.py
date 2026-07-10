@@ -1,5 +1,7 @@
-from pydantic import BaseModel
+from datetime import date
 from typing import Optional
+
+from pydantic import BaseModel, Field
 
 
 class MealCreate(BaseModel):
@@ -9,6 +11,7 @@ class MealCreate(BaseModel):
     fat: float
     carbs: float
     fiber: float
+    slot_id: Optional[int] = None
 
 
 class MealUpdate(BaseModel):
@@ -18,6 +21,7 @@ class MealUpdate(BaseModel):
     fat: Optional[float] = None
     carbs: Optional[float] = None
     fiber: Optional[float] = None
+    slot_id: Optional[int] = None
 
 
 class MealResponse(BaseModel):
@@ -28,6 +32,7 @@ class MealResponse(BaseModel):
     fat: float
     carbs: float
     fiber: float
+    slot_id: Optional[int] = None
 
     model_config = {
         'from_attributes': True
@@ -48,3 +53,77 @@ class Meal(MealCreate):
     model_config = {
         'from_attributes': True
     }
+
+
+class DailyGoalCreate(BaseModel):
+    date: date
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    fiber: float
+
+
+class DailyGoalUpdate(BaseModel):
+    calories: Optional[float] = None
+    protein: Optional[float] = None
+    fat: Optional[float] = None
+    carbs: Optional[float] = None
+    fiber: Optional[float] = None
+
+
+class DailyGoalResponse(BaseModel):
+    id: int
+    date: date
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    fiber: float
+
+    model_config = {
+        'from_attributes': True
+    }
+
+
+class MealPlanCreate(BaseModel):
+    date: date
+    name: Optional[str] = None
+
+
+class MealSlotResponse(BaseModel):
+    id: int
+    plan_id: int
+    position: int
+    label: str
+    meals: list[MealResponse] = Field(default_factory=list)
+
+    model_config = {
+        'from_attributes': True
+    }
+
+
+class MealPlanResponse(BaseModel):
+    id: int
+    date: date
+    name: Optional[str] = None
+    slots: list[MealSlotResponse] = Field(default_factory=list)
+
+    model_config = {
+        'from_attributes': True
+    }
+
+
+class MacroTotals(BaseModel):
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    fiber: float
+
+
+class MealPlanSummary(BaseModel):
+    plan: MealPlanResponse
+    totals: MacroTotals
+    goal: Optional[DailyGoalResponse] = None
+    remaining: Optional[MacroTotals] = None
