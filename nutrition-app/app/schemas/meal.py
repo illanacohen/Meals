@@ -4,6 +4,21 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
+class MealItemCreate(BaseModel):
+    name: str
+    grams: float
+
+
+class MealItemResponse(BaseModel):
+    id: int
+    name: str
+    grams: float
+
+    model_config = {
+        'from_attributes': True
+    }
+
+
 class MealCreate(BaseModel):
     name: str
     calories: float
@@ -12,6 +27,7 @@ class MealCreate(BaseModel):
     carbs: float
     fiber: float
     slot_id: Optional[int] = None
+    items: list[MealItemCreate] = Field(default_factory=list)
 
 
 class MealUpdate(BaseModel):
@@ -22,6 +38,7 @@ class MealUpdate(BaseModel):
     carbs: Optional[float] = None
     fiber: Optional[float] = None
     slot_id: Optional[int] = None
+    items: Optional[list[MealItemCreate]] = None
 
 
 class MealResponse(BaseModel):
@@ -33,6 +50,7 @@ class MealResponse(BaseModel):
     carbs: float
     fiber: float
     slot_id: Optional[int] = None
+    items: list[MealItemResponse] = Field(default_factory=list)
 
     model_config = {
         'from_attributes': True

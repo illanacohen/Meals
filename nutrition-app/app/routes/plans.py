@@ -7,6 +7,7 @@ from app.database.database import get_db
 from app.models.meal import DailyGoal as DailyGoalModel
 from app.models.meal import DEFAULT_SLOT_LABELS
 from app.models.meal import Meal as MealModel
+from app.models.meal import MealItem as MealItemModel
 from app.models.meal import MealPlan as MealPlanModel
 from app.models.meal import MealSlot as MealSlotModel
 from app.schemas.meal import DailyGoalResponse
@@ -29,10 +30,18 @@ NOT_FOUND = {
 }
 
 
+def _plan_load_options():
+    return (
+        joinedload(MealPlanModel.slots)
+        .joinedload(MealSlotModel.meals)
+        .joinedload(MealModel.items)
+    )
+
+
 def _get_plan_or_404(plan_id: int, db: Session) -> MealPlanModel:
     plan = (
         db.query(MealPlanModel)
-        .options(joinedload(MealPlanModel.slots).joinedload(MealSlotModel.meals))
+        .options(_plan_load_options())
         .filter(MealPlanModel.id == plan_id)
         .first()
     )
@@ -64,7 +73,7 @@ def create_meal_plan(plan: MealPlanCreate, db: Session = Depends(get_db)):
 def list_meal_plans(db: Session = Depends(get_db)):
     return (
         db.query(MealPlanModel)
-        .options(joinedload(MealPlanModel.slots).joinedload(MealSlotModel.meals))
+        .options(_plan_load_options())
         .order_by(MealPlanModel.date.desc())
         .all()
     )
@@ -74,7 +83,7 @@ def list_meal_plans(db: Session = Depends(get_db)):
 def get_meal_plan_by_date(plan_date: date, db: Session = Depends(get_db)):
     plan = (
         db.query(MealPlanModel)
-        .options(joinedload(MealPlanModel.slots).joinedload(MealSlotModel.meals))
+        .options(_plan_load_options())
         .filter(MealPlanModel.date == plan_date)
         .first()
     )
@@ -126,13 +135,21 @@ def add_meal_to_slot(
     if not slot:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Meal slot not found')
 
-    meal_data = meal.model_dump(exclude={'slot_id'})
+    meal_data = meal.model_dump(exclude={'slot_id', 'items'})
     meal_db = MealModel(**meal_data, slot_id=slot.id)
+    meal_db.items = [
+        MealItemModel(name=item.name, grams=item.grams)
+        for item in meal.items
+    ]
     db.add(meal_db)
     db.commit()
     db.refresh(meal_db)
-    return meal_db
-
+    return (
+        db.query(MealModel)
+        .options(joinedload(MealModel.items))
+        .filter(MealModel.id == meal_db.id)
+        .first()
+    )
 
 @router.delete('/{plan_id}', status_code=status.HTTP_204_NO_CONTENT, responses=NOT_FOUND)
 def delete_meal_plan(plan_id: int, db: Session = Depends(get_db)):

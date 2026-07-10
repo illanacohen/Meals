@@ -28,6 +28,7 @@ En conjunto, estas herramientas buscan **reducir la dependencia de la fuerza de 
 La API implementa:
 
 - CRUD de comidas con macronutrientes (calorías, proteína, grasa, carbohidratos y fibra)
+- **Ingredientes por comida** (`items`: nombre + gramos)
 - **Planes de alimentación diarios** con 4 slots fijos (Desayuno, Almuerzo, Merienda, Cena)
 - **Metas diarias** de macros, con resumen del plan vs objetivo
 
@@ -137,12 +138,18 @@ POST /meals/
 Content-Type: application/json
 
 {
-  "name": "Pollo con arroz",
-  "calories": 520,
+  "name": "Pollo con verduras",
+  "calories": 420,
   "protein": 45,
   "fat": 12,
-  "carbs": 55,
-  "fiber": 6
+  "carbs": 20,
+  "fiber": 6,
+  "items": [
+    { "name": "pollo", "grams": 150 },
+    { "name": "zanahoria", "grams": 80 },
+    { "name": "zapallito", "grams": 100 },
+    { "name": "cebolla", "grams": 40 }
+  ]
 }
 ```
 
@@ -151,12 +158,19 @@ Content-Type: application/json
 ```json
 {
   "id": 1,
-  "name": "Pollo con arroz",
-  "calories": 520,
+  "name": "Pollo con verduras",
+  "calories": 420,
   "protein": 45,
   "fat": 12,
-  "carbs": 55,
-  "fiber": 6
+  "carbs": 20,
+  "fiber": 6,
+  "slot_id": null,
+  "items": [
+    { "id": 1, "name": "pollo", "grams": 150 },
+    { "id": 2, "name": "zanahoria", "grams": 80 },
+    { "id": 3, "name": "zapallito", "grams": 100 },
+    { "id": 4, "name": "cebolla", "grams": 40 }
+  ]
 }
 ```
 
@@ -184,6 +198,19 @@ Si se consulta, actualiza o elimina un `meal_id` que no existe, la API responde 
 | `carbs`    | float   | Carbohidratos (g)        |
 | `fiber`    | float   | Fibra (g)                |
 | `slot_id`  | int?    | Slot del plan (opcional) |
+| `items`    | list    | Ingredientes (nombre + g)|
+
+### MealItem
+
+Cada elemento de una comida:
+
+| Campo   | Tipo   | Descripción        |
+|---------|--------|--------------------|
+| `id`    | int    | Identificador      |
+| `name`  | string | Ingrediente        |
+| `grams` | float  | Cantidad en gramos |
+
+Al actualizar una comida, si enviás `items`, se reemplaza la lista completa.
 
 ### MealPlan
 

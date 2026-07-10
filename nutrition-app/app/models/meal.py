@@ -66,3 +66,19 @@ class Meal(Base):
     slot_id = Column(Integer, ForeignKey('meal_slots.id', ondelete='SET NULL'), nullable=True)
 
     slot = relationship('MealSlot', back_populates='meals')
+    items = relationship(
+        'MealItem',
+        back_populates='meal',
+        cascade='all, delete-orphan',
+    )
+
+
+class MealItem(Base):
+    __tablename__ = 'meal_items'
+
+    id = Column(Integer, primary_key=True, index=True)
+    meal_id = Column(Integer, ForeignKey('meals.id', ondelete='CASCADE'), nullable=False)
+    name = Column(String, nullable=False)
+    grams = Column(Float, nullable=False)
+
+    meal = relationship('Meal', back_populates='items')
