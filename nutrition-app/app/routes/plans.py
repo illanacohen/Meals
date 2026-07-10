@@ -10,6 +10,8 @@ from app.models.meal import Meal as MealModel
 from app.models.meal import MealItem as MealItemModel
 from app.models.meal import MealPlan as MealPlanModel
 from app.models.meal import MealSlot as MealSlotModel
+from app.models.meal import MealTemplate as MealTemplateModel
+from app.schemas.meal import ApplyTemplateRequest
 from app.schemas.meal import DailyGoalResponse
 from app.schemas.meal import ErrorResponse
 from app.schemas.meal import MacroTotals
@@ -194,6 +196,70 @@ def add_meal_to_slot(
         .filter(MealModel.id == meal_db.id)
         .first()
     )
+
+
+@router.post(
+    '/{plan_id}/slots/{position}/from-library/{template_id}',
+    response_model=MealResponseSchema,
+    status_code=status.HTTP_201_CREATED,
+    responses=NOT_FOUND,
+)
+def add_library_meal_to_slot(
+    plan_id: int,
+    position: int,
+    template_id: int,
+    payload: ApplyTemplateRequest = ApplyTemplateRequest(),
+    db: Session = Depends(get_db),
+):
+    """One-click: add a saved library meal into a plan slot."""
+    if position not in (1, 2, 3, 4):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Slot position must be between 1 and 4',
+        )
+
+    plan = _get_plan_or_404(plan_id, db)
+    slot = next((s for s in plan.slots if s.position == position), None)
+    if not slot:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Meal slot not found')
+
+    template = (
+        db.query(MealTemplateModel)
+        .options(joinedload(MealTemplateModel.items))
+        .filter(MealTemplateModel.id == template_id)
+        .first()
+    )
+    if not template:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Meal template not found')
+
+    meal_name = payload.name or template.name
+    meal_db = MealModel(
+        name=meal_name,
+        calories=template.calories,
+        protein=template.protein,
+        fat=template.fat,
+        carbs=template.carbs,
+        fiber=template.fiber,
+        slot_id=slot.id,
+        items=[
+            MealItemModel(
+                name=item.name,
+                quantity=item.quantity,
+                unit=item.unit,
+                grams=item.grams,
+            )
+            for item in template.items
+        ],
+    )
+    db.add(meal_db)
+    db.commit()
+    return (
+        db.query(MealModel)
+        .options(joinedload(MealModel.items))
+        .filter(MealModel.id == meal_db.id)
+        .first()
+    )
+
 
 @router.delete('/{plan_id}', status_code=status.HTTP_204_NO_CONTENT, responses=NOT_FOUND)
 def delete_meal_plan(plan_id: int, db: Session = Depends(get_db)):

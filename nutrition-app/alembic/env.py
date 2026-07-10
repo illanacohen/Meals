@@ -6,7 +6,15 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.database.base import Base
-from app.models.meal import DailyGoal, Meal, MealItem, MealPlan, MealSlot  # noqa: F401
+from app.models.meal import (  # noqa: F401
+    DailyGoal,
+    Meal,
+    MealItem,
+    MealPlan,
+    MealSlot,
+    MealTemplate,
+    MealTemplateItem,
+)
 from app.models.user_profile import UserProfile  # noqa: F401
 
 # this is the Alembic Config object, which provides

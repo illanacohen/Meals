@@ -32,6 +32,7 @@ La API implementa:
 - **Planes de alimentación diarios** con 4 slots fijos (Desayuno, Almuerzo, Merienda, Cena)
 - **Metas diarias** de macros, con resumen del plan vs objetivo
 - **Onboarding inteligente** — perfil corporal + estilo de vida → BMR/TDEE, metas y distribución por comida
+- **Biblioteca de comidas** — guardar favoritos ("Huevos con zapallito") y agregarlos al plan con un clic
 
 El registro emocional, el contexto de vida y el módulo de coach están planificados como próximas etapas.
 
@@ -124,6 +125,7 @@ La API queda disponible en `http://127.0.0.1:8000`.
 | `GET`    | `/plans/{plan_id}/summary` | Totales del plan vs meta del día |
 | `GET`    | `/plans/{plan_id}/validate` | Validar plan contra la meta (± tolerancia) |
 | `POST`   | `/plans/{plan_id}/slots/{position}/meals` | Agregar comida a un slot (1–4) |
+| `POST`   | `/plans/{plan_id}/slots/{position}/from-library/{template_id}` | Agregar favorito de la biblioteca (1 clic) |
 | `DELETE` | `/plans/{plan_id}` | Eliminar plan |
 
 ### Daily Goals
@@ -189,6 +191,43 @@ PATCH /onboarding/refine
 ```
 
 Cada comida en `distribution` incluye `role` y `focus` (ej. `"Muchos carbohidratos"`).
+
+### Meal Library
+
+Guardá comidas favoritas y reutilizalas sin volver a tipear gramos.
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/library/` | Crear favorito (ej. "Huevos con zapallito") |
+| `GET` | `/library/` | Listar biblioteca |
+| `GET` | `/library/{id}` | Ver favorito |
+| `PUT` | `/library/{id}` | Actualizar |
+| `DELETE` | `/library/{id}` | Eliminar |
+| `POST` | `/library/from-meal/{meal_id}` | Guardar una comida existente como favorito |
+
+Ejemplo — guardar:
+
+```json
+POST /library/
+{
+  "name": "Huevos con zapallito",
+  "calories": 320,
+  "protein": 22,
+  "fat": 18,
+  "carbs": 12,
+  "fiber": 3,
+  "items": [
+    { "name": "huevo", "quantity": 2, "unit": "unit" },
+    { "name": "zapallito", "quantity": 150, "unit": "g" }
+  ]
+}
+```
+
+Agregar al plan con un clic:
+
+```http
+POST /plans/1/slots/1/from-library/1
+```
 
 ### Ejemplo: crear una comida
 

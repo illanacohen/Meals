@@ -188,3 +188,51 @@ class PlanGoalValidation(BaseModel):
     remaining: MacroTotals
     macros: list[MacroValidation]
     message: str
+
+
+class MealTemplateItemResponse(BaseModel):
+    id: int
+    name: str
+    quantity: float
+    unit: MealUnit
+    grams: float
+
+    model_config = {'from_attributes': True}
+
+
+class MealTemplateCreate(BaseModel):
+    name: str
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    fiber: float
+    items: list[MealItemCreate] = Field(default_factory=list)
+
+
+class MealTemplateUpdate(BaseModel):
+    name: Optional[str] = None
+    calories: Optional[float] = None
+    protein: Optional[float] = None
+    fat: Optional[float] = None
+    carbs: Optional[float] = None
+    fiber: Optional[float] = None
+    items: Optional[list[MealItemCreate]] = None
+
+
+class MealTemplateResponse(BaseModel):
+    id: int
+    name: str
+    calories: float
+    protein: float
+    fat: float
+    carbs: float
+    fiber: float
+    items: list[MealTemplateItemResponse] = Field(default_factory=list)
+
+    model_config = {'from_attributes': True}
+
+
+class ApplyTemplateRequest(BaseModel):
+    """Optional override name when adding a library meal to a plan slot."""
+    name: Optional[str] = None

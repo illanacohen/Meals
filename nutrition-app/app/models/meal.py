@@ -84,3 +84,36 @@ class MealItem(Base):
     grams = Column(Float, nullable=False)
 
     meal = relationship('Meal', back_populates='items')
+
+
+class MealTemplate(Base):
+    """Saved favorite meal for one-click reuse (meal library)."""
+
+    __tablename__ = 'meal_templates'
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False, unique=True, index=True)
+    calories = Column(Float, nullable=False)
+    protein = Column(Float, nullable=False)
+    carbs = Column(Float, nullable=False)
+    fat = Column(Float, nullable=False)
+    fiber = Column(Float, nullable=False)
+
+    items = relationship(
+        'MealTemplateItem',
+        back_populates='template',
+        cascade='all, delete-orphan',
+    )
+
+
+class MealTemplateItem(Base):
+    __tablename__ = 'meal_template_items'
+
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(Integer, ForeignKey('meal_templates.id', ondelete='CASCADE'), nullable=False)
+    name = Column(String, nullable=False)
+    quantity = Column(Float, nullable=False)
+    unit = Column(String, nullable=False, default='g')
+    grams = Column(Float, nullable=False)
+
+    template = relationship('MealTemplate', back_populates='items')
