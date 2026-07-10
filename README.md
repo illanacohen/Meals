@@ -34,6 +34,12 @@ La API implementa:
 
 El registro emocional, el contexto de vida y el módulo de coach están planificados como próximas etapas.
 
+## Future features
+
+- **Perfil corporal y actividad** — ingreso de peso, edad, altura e intensidad de ejercicio diario para calcular necesidades energéticas de forma personalizada.
+- **Objetivo nutricional** — elegir entre déficit (con distintas intensidades), mantenimiento o volumen limpio, y generar metas de macros alineadas a ese objetivo.
+- **Distribución inteligente de macros** — estrategia basada en el horario de entrenamiento y/o la rutina diaria de la persona, para repartir calorías y macros entre las comidas del día de modo que se reduzca el hambre y se optimice la energía (por ejemplo, más carbohidratos alrededor del entrenamiento).
+
 ## Stack
 
 - **FastAPI** — framework web
@@ -115,6 +121,7 @@ La API queda disponible en `http://127.0.0.1:8000`.
 | `GET`    | `/plans/by-date/{date}` | Obtener plan por fecha |
 | `GET`    | `/plans/{plan_id}` | Obtener plan con slots y comidas |
 | `GET`    | `/plans/{plan_id}/summary` | Totales del plan vs meta del día |
+| `GET`    | `/plans/{plan_id}/validate` | Validar plan contra la meta (± tolerancia) |
 | `POST`   | `/plans/{plan_id}/slots/{position}/meals` | Agregar comida a un slot (1–4) |
 | `DELETE` | `/plans/{plan_id}` | Eliminar plan |
 
@@ -219,6 +226,12 @@ Un plan por fecha. Al crearlo se generan 4 slots: Desayuno (1), Almuerzo (2), Me
 ### DailyGoal
 
 Una meta de macros por fecha (`calories`, `protein`, `fat`, `carbs`, `fiber`). El endpoint `/plans/{id}/summary` compara los totales del plan con la meta del mismo día.
+
+### Validar plan vs meta
+
+`GET /plans/{plan_id}/validate?tolerance_percent=5`
+
+Compara los macros del plan con la meta del mismo día. Un macro está `ok` si la diferencia está dentro del porcentaje de tolerancia (default 5%). Responde `is_valid: true/false` y el detalle por nutriente (`ok` / `under` / `over`). Si no hay meta para esa fecha, responde `404`.
 
 ## Base de datos
 
