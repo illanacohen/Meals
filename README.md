@@ -139,36 +139,56 @@ La API queda disponible en `http://127.0.0.1:8000`.
 
 ### Onboarding
 
+Flujo en **2 pasos**:
+
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| `POST` | `/onboarding/` | Guardar perfil + calcular BMR/TDEE/metas/distribución |
+| `POST` | `/onboarding/` | **Paso 1 obligatorio** — solo edad, sexo, peso, altura, objetivo |
+| `PATCH` | `/onboarding/refine` | **Paso 2 opcional** — actividad, entreno, preferencias; **reorganiza comidas por horario** |
+| `POST` | `/onboarding/full` | Atajo: todo en un request |
 | `POST` | `/onboarding/preview` | Calcular sin guardar |
-| `GET`  | `/onboarding/profile` | Ver perfil guardado |
+| `GET`  | `/onboarding/profile` | Ver perfil |
 
-No solo pide edad/sexo/peso/altura/objetivo. También captura actividad, intensidad del déficit/volumen, horario de entrenamiento, patrón de hambre, horarios de sueño/vigilia y preferencia post-entreno. Con eso genera macros diarios y una distribución sugerida por comida (más energía alrededor del entrenamiento).
+#### Paso 1 (obligatorio)
 
-Ejemplo:
-
-```http
+```json
 POST /onboarding/
-Content-Type: application/json
-
 {
   "age": 28,
   "sex": "male",
   "weight_kg": 80,
   "height_cm": 178,
-  "goal": "deficit",
-  "deficit_intensity": "moderate",
-  "activity_level": "moderate",
-  "training_days_per_week": 4,
-  "training_time": "afternoon",
-  "hunger_pattern": "evening",
-  "meals_per_day": 4,
-  "prefers_larger_post_workout": true,
-  "create_goal_for_today": true
+  "goal": "deficit"
 }
 ```
+
+Calcula calorías/proteína/grasas/carbohidratos. Intensidad y actividad usan defaults (`moderate`).
+
+#### Paso 2 (opcional) — distribución por horario
+
+No es lo mismo entrenar a las **7 AM** que a las **6 PM**. Con `training_hour` o `training_time` la app reorganiza automáticamente:
+
+| Horario | Desayuno | Almuerzo | Merienda | Cena |
+|---------|----------|----------|----------|------|
+| Manana (7 AM) | Recuperacion | Muchos carbs | Proteina + grasa | Completar macros |
+| Despues del almuerzo | Proteina + grasa | Muchos carbs | Recuperacion | Completar macros |
+| Tarde/noche (6 PM) | Proteina + grasa | Equilibrado | Muchos carbs | Recuperacion |
+
+```json
+PATCH /onboarding/refine
+{
+  "training_hour": "18:00:00",
+  "training_type": "strength",
+  "training_days_per_week": 4,
+  "daily_steps": 9000,
+  "food_preferences": ["pollo", "arroz"],
+  "excluded_foods": ["cerdo"],
+  "budget_level": "medium",
+  "cooking_time_minutes": 25
+}
+```
+
+Cada comida en `distribution` incluye `role` y `focus` (ej. `"Muchos carbohidratos"`).
 
 ### Ejemplo: crear una comida
 

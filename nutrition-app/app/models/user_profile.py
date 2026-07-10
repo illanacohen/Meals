@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Time, Boolean
+from sqlalchemy import Column, Integer, String, Float, Time, Boolean, JSON
 
 from app.database.base import Base
 
@@ -10,23 +10,36 @@ class UserProfile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
 
-    # Body metrics
+    # Required basics
     age = Column(Integer, nullable=False)
     sex = Column(String, nullable=False)  # male | female
     weight_kg = Column(Float, nullable=False)
     height_cm = Column(Float, nullable=False)
-
-    # Goal
     goal = Column(String, nullable=False)  # deficit | maintenance | surplus
-    deficit_intensity = Column(String, nullable=True)  # mild | moderate | aggressive
-    surplus_intensity = Column(String, nullable=True)  # mild | moderate
+    deficit_intensity = Column(String, nullable=True)
+    surplus_intensity = Column(String, nullable=True)
+    activity_level = Column(String, nullable=False)
 
-    # Lifestyle / activity (intelligent onboarding extras)
-    activity_level = Column(String, nullable=False)  # sedentary..very_active
+    # Optional body / activity detail
+    body_fat_percent = Column(Float, nullable=True)
+    daily_steps = Column(Integer, nullable=True)
+
+    # Training
     training_days_per_week = Column(Integer, nullable=False, default=0)
+    training_type = Column(String, nullable=True)  # strength | crossfit | running | mixed | other
+    training_level = Column(String, nullable=True)  # beginner | intermediate | advanced
     training_time = Column(String, nullable=True)  # morning | afternoon | evening | none
+    training_hour = Column(Time, nullable=True)
+
+    # Lifestyle
     wake_time = Column(Time, nullable=True)
     sleep_time = Column(Time, nullable=True)
     meals_per_day = Column(Integer, nullable=False, default=4)
-    hunger_pattern = Column(String, nullable=True)  # morning | evening | balanced
+    hunger_pattern = Column(String, nullable=True)
     prefers_larger_post_workout = Column(Boolean, nullable=False, default=True)
+
+    # Food / practical constraints
+    food_preferences = Column(JSON, nullable=True)  # list[str]
+    excluded_foods = Column(JSON, nullable=True)  # list[str]
+    budget_level = Column(String, nullable=True)  # low | medium | high
+    cooking_time_minutes = Column(Integer, nullable=True)

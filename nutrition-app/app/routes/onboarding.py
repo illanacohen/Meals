@@ -7,7 +7,13 @@ from app.database.database import get_db
 from app.models.meal import DailyGoal as DailyGoalModel
 from app.models.user_profile import UserProfile
 from app.schemas.meal import ErrorResponse
-from app.schemas.onboarding import OnboardingRequest, OnboardingResponse, UserProfileResponse
+from app.schemas.onboarding import (
+    OnboardingBasicsRequest,
+    OnboardingRefineRequest,
+    OnboardingRequest,
+    OnboardingResponse,
+    UserProfileResponse,
+)
 from app.services.onboarding_engine import run_onboarding_calculations
 
 router = APIRouter()
@@ -19,27 +25,51 @@ NOT_FOUND = {
     },
 }
 
+_PROFILE_FIELDS = (
+    'age', 'sex', 'weight_kg', 'height_cm', 'goal', 'deficit_intensity', 'surplus_intensity',
+    'activity_level', 'body_fat_percent', 'daily_steps', 'training_days_per_week',
+    'training_type', 'training_level', 'training_time', 'training_hour', 'wake_time',
+    'sleep_time', 'meals_per_day', 'hunger_pattern', 'prefers_larger_post_workout',
+    'food_preferences', 'excluded_foods', 'budget_level', 'cooking_time_minutes',
+)
+
+_ENUM_KEYS = (
+    'sex', 'goal', 'deficit_intensity', 'surplus_intensity', 'activity_level',
+    'training_type', 'training_level', 'training_time', 'hunger_pattern', 'budget_level',
+)
+
 
 def _enum_val(value):
     return value.value if hasattr(value, 'value') else value
 
 
-def _apply_request_to_profile(profile: UserProfile, payload: OnboardingRequest) -> None:
-    profile.age = payload.age
-    profile.sex = _enum_val(payload.sex)
-    profile.weight_kg = payload.weight_kg
-    profile.height_cm = payload.height_cm
-    profile.goal = _enum_val(payload.goal)
-    profile.deficit_intensity = _enum_val(payload.deficit_intensity) if payload.deficit_intensity else None
-    profile.surplus_intensity = _enum_val(payload.surplus_intensity) if payload.surplus_intensity else None
-    profile.activity_level = _enum_val(payload.activity_level)
-    profile.training_days_per_week = payload.training_days_per_week
-    profile.training_time = _enum_val(payload.training_time) if payload.training_time else None
-    profile.wake_time = payload.wake_time
-    profile.sleep_time = payload.sleep_time
-    profile.meals_per_day = payload.meals_per_day
-    profile.hunger_pattern = _enum_val(payload.hunger_pattern) if payload.hunger_pattern else None
-    profile.prefers_larger_post_workout = payload.prefers_larger_post_workout
+def _normalize(data: dict) -> dict:
+    for key in _ENUM_KEYS:
+        if data.get(key) is not None:
+            data[key] = _enum_val(data[key])
+    return data
+
+
+def _basics_to_profile_kwargs(payload: OnboardingBasicsRequest) -> dict:
+    data = payload.model_dump(exclude={'create_goal_for_today'})
+    data = _normalize(data)
+    # Defaults for fields not asked in step 1
+    data.setdefault('activity_level', 'moderate')
+    data.setdefault('training_days_per_week', 0)
+    data.setdefault('meals_per_day', 4)
+    data.setdefault('prefers_larger_post_workout', True)
+    data.setdefault('training_time', 'none')
+    data.setdefault('hunger_pattern', 'balanced')
+    return data
+
+
+def _full_to_profile_kwargs(payload: OnboardingRequest) -> dict:
+    return _normalize(payload.model_dump(exclude={'create_goal_for_today'}))
+
+
+def _apply_kwargs(profile: UserProfile, data: dict) -> None:
+    for key, value in data.items():
+        setattr(profile, key, value)
 
 
 def _upsert_today_goal(db: Session, targets: dict) -> DailyGoalModel:
@@ -56,39 +86,84 @@ def _upsert_today_goal(db: Session, targets: dict) -> DailyGoalModel:
     return goal
 
 
-@router.post('/', response_model=OnboardingResponse, status_code=status.HTTP_201_CREATED)
-def complete_onboarding(payload: OnboardingRequest, db: Session = Depends(get_db)):
-    profile = db.query(UserProfile).order_by(UserProfile.id.asc()).first()
-    if not profile:
-        profile = UserProfile()
-        db.add(profile)
-
-    _apply_request_to_profile(profile, payload)
-    db.flush()
-
-    calc = run_onboarding_calculations(profile)
-    goal_id = None
-    message = 'Onboarding saved. Targets and meal distribution calculated.'
-
-    if payload.create_goal_for_today:
-        goal = _upsert_today_goal(db, calc['targets'])
-        db.flush()
-        goal_id = goal.id
-        message = (
-            'Onboarding saved. Daily goal for today was created/updated from your targets.'
-        )
-
-    db.commit()
-    db.refresh(profile)
-
+def _build_response(profile, calc, goal_id=None, message='') -> OnboardingResponse:
     return OnboardingResponse(
         profile=profile,
         bmr=calc['bmr'],
         tdee=calc['tdee'],
         targets=calc['targets'],
         distribution=calc['distribution'],
+        guidance=calc['guidance'],
         goal_id=goal_id,
         message=message,
+    )
+
+
+def _save_and_respond(db: Session, profile: UserProfile, create_goal: bool, message: str):
+    db.flush()
+    calc = run_onboarding_calculations(profile)
+    goal_id = None
+    if create_goal:
+        goal = _upsert_today_goal(db, calc['targets'])
+        db.flush()
+        goal_id = goal.id
+        message = message + ' Daily goal for today updated.'
+    db.commit()
+    db.refresh(profile)
+    return _build_response(profile, calc, goal_id=goal_id, message=message)
+
+
+@router.post('/', response_model=OnboardingResponse, status_code=status.HTTP_201_CREATED)
+def complete_onboarding_basics(payload: OnboardingBasicsRequest, db: Session = Depends(get_db)):
+    """Paso 1 obligatorio: edad, sexo, peso, altura, objetivo."""
+    profile = db.query(UserProfile).order_by(UserProfile.id.asc()).first()
+    if not profile:
+        profile = UserProfile()
+        db.add(profile)
+
+    _apply_kwargs(profile, _basics_to_profile_kwargs(payload))
+    return _save_and_respond(
+        db,
+        profile,
+        create_goal=payload.create_goal_for_today,
+        message='Paso basico guardado. Macros calculados. Usa /onboarding/refine para horario de entreno y demas.',
+    )
+
+
+@router.patch('/refine', response_model=OnboardingResponse, responses=NOT_FOUND)
+def refine_onboarding(payload: OnboardingRefineRequest, db: Session = Depends(get_db)):
+    """Paso 2 opcional: actividad, entreno, preferencias. Redistribuye comidas por horario."""
+    profile = db.query(UserProfile).order_by(UserProfile.id.asc()).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Complete /onboarding/ basics first',
+        )
+
+    updates = _normalize(payload.model_dump(exclude_unset=True, exclude={'create_goal_for_today'}))
+    _apply_kwargs(profile, updates)
+    return _save_and_respond(
+        db,
+        profile,
+        create_goal=payload.create_goal_for_today,
+        message='Perfil refinado. Distribucion reorganizada segun horario de entrenamiento.',
+    )
+
+
+@router.post('/full', response_model=OnboardingResponse, status_code=status.HTTP_201_CREATED)
+def complete_onboarding_full(payload: OnboardingRequest, db: Session = Depends(get_db)):
+    """Atajo: basicos + opcionales en un solo request."""
+    profile = db.query(UserProfile).order_by(UserProfile.id.asc()).first()
+    if not profile:
+        profile = UserProfile()
+        db.add(profile)
+
+    _apply_kwargs(profile, _full_to_profile_kwargs(payload))
+    return _save_and_respond(
+        db,
+        profile,
+        create_goal=payload.create_goal_for_today,
+        message='Onboarding completo guardado con distribucion por horario.',
     )
 
 
@@ -102,47 +177,12 @@ def get_profile(db: Session = Depends(get_db)):
 
 @router.post('/preview', response_model=OnboardingResponse)
 def preview_onboarding_post(payload: OnboardingRequest):
-    profile = UserProfile(
-        age=payload.age,
-        sex=_enum_val(payload.sex),
-        weight_kg=payload.weight_kg,
-        height_cm=payload.height_cm,
-        goal=_enum_val(payload.goal),
-        deficit_intensity=_enum_val(payload.deficit_intensity) if payload.deficit_intensity else None,
-        surplus_intensity=_enum_val(payload.surplus_intensity) if payload.surplus_intensity else None,
-        activity_level=_enum_val(payload.activity_level),
-        training_days_per_week=payload.training_days_per_week,
-        training_time=_enum_val(payload.training_time) if payload.training_time else None,
-        wake_time=payload.wake_time,
-        sleep_time=payload.sleep_time,
-        meals_per_day=payload.meals_per_day,
-        hunger_pattern=_enum_val(payload.hunger_pattern) if payload.hunger_pattern else None,
-        prefers_larger_post_workout=payload.prefers_larger_post_workout,
-    )
+    profile = UserProfile(**_full_to_profile_kwargs(payload))
     calc = run_onboarding_calculations(profile)
-    return OnboardingResponse(
-        profile=UserProfileResponse(
-            id=0,
-            age=profile.age,
-            sex=profile.sex,
-            weight_kg=profile.weight_kg,
-            height_cm=profile.height_cm,
-            goal=profile.goal,
-            deficit_intensity=profile.deficit_intensity,
-            surplus_intensity=profile.surplus_intensity,
-            activity_level=profile.activity_level,
-            training_days_per_week=profile.training_days_per_week,
-            training_time=profile.training_time,
-            wake_time=profile.wake_time,
-            sleep_time=profile.sleep_time,
-            meals_per_day=profile.meals_per_day,
-            hunger_pattern=profile.hunger_pattern,
-            prefers_larger_post_workout=profile.prefers_larger_post_workout,
-        ),
-        bmr=calc['bmr'],
-        tdee=calc['tdee'],
-        targets=calc['targets'],
-        distribution=calc['distribution'],
+    preview_profile = UserProfileResponse(id=0, **{k: getattr(profile, k) for k in _PROFILE_FIELDS})
+    return _build_response(
+        preview_profile,
+        calc,
         goal_id=None,
         message='Preview only. Nothing was saved.',
     )
