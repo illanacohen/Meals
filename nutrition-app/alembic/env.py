@@ -7,6 +7,7 @@ from alembic import context
 
 from app.database.base import Base
 from app.models.meal import DailyGoal, Meal, MealItem, MealPlan, MealSlot  # noqa: F401
+from app.models.user_profile import UserProfile  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

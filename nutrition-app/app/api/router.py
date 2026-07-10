@@ -1,8 +1,9 @@
 from fastapi import APIRouter
-from app.routes import meals, plans, goals
+from app.routes import meals, plans, goals, onboarding
 
 api_router = APIRouter()
 
 api_router.include_router(meals.router, prefix='/meals', tags=['Meals'])
 api_router.include_router(plans.router, prefix='/plans', tags=['Meal Plans'])
 api_router.include_router(goals.router, prefix='/goals', tags=['Daily Goals'])
+api_router.include_router(onboarding.router, prefix='/onboarding', tags=['Onboarding'])

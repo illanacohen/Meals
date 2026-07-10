@@ -31,14 +31,15 @@ La API implementa:
 - **Ingredientes por comida** (`items`: quantity + unit → grams vía catálogo local)
 - **Planes de alimentación diarios** con 4 slots fijos (Desayuno, Almuerzo, Merienda, Cena)
 - **Metas diarias** de macros, con resumen del plan vs objetivo
+- **Onboarding inteligente** — perfil corporal + estilo de vida → BMR/TDEE, metas y distribución por comida
 
 El registro emocional, el contexto de vida y el módulo de coach están planificados como próximas etapas.
 
 ## Future features
 
-- **Perfil corporal y actividad** — ingreso de peso, edad, altura e intensidad de ejercicio diario para calcular necesidades energéticas de forma personalizada.
-- **Objetivo nutricional** — elegir entre déficit (con distintas intensidades), mantenimiento o volumen limpio, y generar metas de macros alineadas a ese objetivo.
-- **Distribución inteligente de macros** — estrategia basada en el horario de entrenamiento y/o la rutina diaria de la persona, para repartir calorías y macros entre las comidas del día de modo que se reduzca el hambre y se optimice la energía (por ejemplo, más carbohidratos alrededor del entrenamiento).
+- Ampliar el catálogo de alimentos y estimar macros desde ingredientes
+- Refinar la distribución de macros con más señales de rutina diaria
+- Coach / acompañamiento basado en adherencia y emociones
 
 ## Stack
 
@@ -135,6 +136,39 @@ La API queda disponible en `http://127.0.0.1:8000`.
 | `GET`    | `/goals/{goal_id}` | Obtener meta |
 | `PUT`    | `/goals/{goal_id}` | Actualizar meta |
 | `DELETE` | `/goals/{goal_id}` | Eliminar meta |
+
+### Onboarding
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `POST` | `/onboarding/` | Guardar perfil + calcular BMR/TDEE/metas/distribución |
+| `POST` | `/onboarding/preview` | Calcular sin guardar |
+| `GET`  | `/onboarding/profile` | Ver perfil guardado |
+
+No solo pide edad/sexo/peso/altura/objetivo. También captura actividad, intensidad del déficit/volumen, horario de entrenamiento, patrón de hambre, horarios de sueño/vigilia y preferencia post-entreno. Con eso genera macros diarios y una distribución sugerida por comida (más energía alrededor del entrenamiento).
+
+Ejemplo:
+
+```http
+POST /onboarding/
+Content-Type: application/json
+
+{
+  "age": 28,
+  "sex": "male",
+  "weight_kg": 80,
+  "height_cm": 178,
+  "goal": "deficit",
+  "deficit_intensity": "moderate",
+  "activity_level": "moderate",
+  "training_days_per_week": 4,
+  "training_time": "afternoon",
+  "hunger_pattern": "evening",
+  "meals_per_day": 4,
+  "prefers_larger_post_workout": true,
+  "create_goal_for_today": true
+}
+```
 
 ### Ejemplo: crear una comida
 
