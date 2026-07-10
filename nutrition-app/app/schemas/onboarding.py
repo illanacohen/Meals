@@ -5,7 +5,7 @@ from typing import Optional
 from pydantic import BaseModel, Field, model_validator
 
 
-class Sex(str, Enum):
+class Gender(str, Enum):
     male = 'male'
     female = 'female'
 
@@ -72,7 +72,7 @@ class OnboardingBasicsRequest(BaseModel):
     """Paso 1 obligatorio: solo lo esencial."""
 
     age: int = Field(ge=14, le=100)
-    sex: Sex
+    gender: Gender
     weight_kg: float = Field(gt=0, le=400)
     height_cm: float = Field(gt=0, le=300)
     goal: NutritionGoal
@@ -142,7 +142,7 @@ class OnboardingRequest(OnboardingBasicsRequest):
 class UserProfileResponse(BaseModel):
     id: int
     age: int
-    sex: Sex
+    gender: Gender
     weight_kg: float
     height_cm: float
     goal: NutritionGoal

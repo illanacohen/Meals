@@ -26,7 +26,7 @@ NOT_FOUND = {
 }
 
 _PROFILE_FIELDS = (
-    'age', 'sex', 'weight_kg', 'height_cm', 'goal', 'deficit_intensity', 'surplus_intensity',
+    'age', 'gender', 'weight_kg', 'height_cm', 'goal', 'deficit_intensity', 'surplus_intensity',
     'activity_level', 'body_fat_percent', 'daily_steps', 'training_days_per_week',
     'training_type', 'training_level', 'training_time', 'training_hour', 'wake_time',
     'sleep_time', 'meals_per_day', 'hunger_pattern', 'prefers_larger_post_workout',
@@ -34,7 +34,7 @@ _PROFILE_FIELDS = (
 )
 
 _ENUM_KEYS = (
-    'sex', 'goal', 'deficit_intensity', 'surplus_intensity', 'activity_level',
+    'gender', 'goal', 'deficit_intensity', 'surplus_intensity', 'activity_level',
     'training_type', 'training_level', 'training_time', 'hunger_pattern', 'budget_level',
 )
 
@@ -115,7 +115,7 @@ def _save_and_respond(db: Session, profile: UserProfile, create_goal: bool, mess
 
 @router.post('/', response_model=OnboardingResponse, status_code=status.HTTP_201_CREATED)
 def complete_onboarding_basics(payload: OnboardingBasicsRequest, db: Session = Depends(get_db)):
-    """Paso 1 obligatorio: edad, sexo, peso, altura, objetivo."""
+    """Paso 1 obligatorio: edad, genero, peso, altura, objetivo."""
     profile = db.query(UserProfile).order_by(UserProfile.id.asc()).first()
     if not profile:
         profile = UserProfile()

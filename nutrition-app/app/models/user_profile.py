@@ -12,7 +12,7 @@ class UserProfile(Base):
 
     # Required basics
     age = Column(Integer, nullable=False)
-    sex = Column(String, nullable=False)  # male | female
+    gender = Column(String, nullable=False)  # male | female
     weight_kg = Column(Float, nullable=False)
     height_cm = Column(Float, nullable=False)
     goal = Column(String, nullable=False)  # deficit | maintenance | surplus

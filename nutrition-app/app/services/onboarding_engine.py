@@ -41,14 +41,14 @@ def calculate_bmr(
     weight_kg: float,
     height_cm: float,
     age: int,
-    sex: str,
+    gender: str,
     body_fat_percent: float | None = None,
 ) -> float:
     if body_fat_percent is not None:
         lean_mass = weight_kg * (1 - body_fat_percent / 100.0)
         return 370 + (21.6 * lean_mass)
 
-    if sex == 'male':
+    if gender == 'male':
         return 10 * weight_kg + 6.25 * height_cm - 5 * age + 5
     return 10 * weight_kg + 6.25 * height_cm - 5 * age - 161
 
@@ -370,7 +370,7 @@ def run_onboarding_calculations(profile) -> dict:
         profile.weight_kg,
         profile.height_cm,
         profile.age,
-        profile.sex,
+        profile.gender,
         body_fat_percent=profile.body_fat_percent,
     )
     tdee = calculate_tdee(

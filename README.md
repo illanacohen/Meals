@@ -145,7 +145,7 @@ Flujo en **2 pasos**:
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| `POST` | `/onboarding/` | **Paso 1 obligatorio** — solo edad, sexo, peso, altura, objetivo |
+| `POST` | `/onboarding/` | **Paso 1 obligatorio** — solo edad, género, peso, altura, objetivo |
 | `PATCH` | `/onboarding/refine` | **Paso 2 opcional** — actividad, entreno, preferencias; **reorganiza comidas por horario** |
 | `POST` | `/onboarding/full` | Atajo: todo en un request |
 | `POST` | `/onboarding/preview` | Calcular sin guardar |
@@ -157,7 +157,7 @@ Flujo en **2 pasos**:
 POST /onboarding/
 {
   "age": 28,
-  "sex": "male",
+  "gender": "male",
   "weight_kg": 80,
   "height_cm": 178,
   "goal": "deficit"
