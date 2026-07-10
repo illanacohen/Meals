@@ -363,3 +363,11 @@ docker compose up --build
 alembic revision --autogenerate -m "descripcion del cambio"
 alembic upgrade head
 ```
+
+## Tests
+
+```bash
+cd nutrition-app
+pip install -r requirements.txt
+pytest
+```
