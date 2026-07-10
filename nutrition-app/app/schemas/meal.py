@@ -8,6 +8,7 @@ class MealCreate(BaseModel):
     protein: float
     fat: float
     carbs: float
+    fiber: float
 
 
 class MealUpdate(BaseModel):
@@ -16,6 +17,7 @@ class MealUpdate(BaseModel):
     protein: Optional[float] = None
     fat: Optional[float] = None
     carbs: Optional[float] = None
+    fiber: Optional[float] = None
 
 
 class MealResponse(BaseModel):
@@ -25,6 +27,7 @@ class MealResponse(BaseModel):
     protein: float
     fat: float
     carbs: float
+    fiber: float
 
     model_config = {
         'from_attributes': True

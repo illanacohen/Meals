@@ -27,7 +27,7 @@ En conjunto, estas herramientas buscan **reducir la dependencia de la fuerza de 
 
 Por ahora la API implementa las **utilidades básicas de gestión de comidas**:
 
-- Carga, actualización, eliminación y visualización de comidas con sus macronutrientes (calorías, proteína, grasa y carbohidratos)
+- Carga, actualización, eliminación y visualización de comidas con sus macronutrientes (calorías, proteína, grasa, carbohidratos y fibra)
 
 La gestión de metas, el registro emocional, el contexto de vida y el módulo de coach están planificados como próximas etapas del proyecto.
 
@@ -114,7 +114,8 @@ Content-Type: application/json
   "calories": 520,
   "protein": 45,
   "fat": 12,
-  "carbs": 55
+  "carbs": 55,
+  "fiber": 6
 }
 ```
 
@@ -127,7 +128,8 @@ Content-Type: application/json
   "calories": 520,
   "protein": 45,
   "fat": 12,
-  "carbs": 55
+  "carbs": 55,
+  "fiber": 6
 }
 ```
 
@@ -153,6 +155,7 @@ Cada comida (`Meal`) tiene:
 | `protein`  | float   | Proteína (g)       |
 | `fat`      | float   | Grasa (g)          |
 | `carbs`    | float   | Carbohidratos (g)  |
+| `fiber`    | float   | Fibra (g)          |
 
 ## Base de datos
 

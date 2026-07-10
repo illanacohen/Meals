@@ -11,3 +11,4 @@ class Meal(Base):
     protein = Column(Float, nullable=False)
     carbs = Column(Float, nullable=False)
     fat = Column(Float, nullable=False)
+    fiber = Column(Float, nullable=False)
