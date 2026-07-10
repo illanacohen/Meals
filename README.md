@@ -128,6 +128,13 @@ La API queda disponible en `http://127.0.0.1:8000`.
 | `POST`   | `/plans/{plan_id}/slots/{position}/from-library/{template_id}` | Agregar favorito de la biblioteca (1 clic) |
 | `DELETE` | `/plans/{plan_id}` | Eliminar plan |
 
+### Shopping List
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/shopping-list/?start_date=&end_date=` | Lista de compras del rango |
+| `GET` | `/shopping-list/week?week_start=` | Lista de la semana (7 días) |
+
 ### Daily Goals
 
 | Método   | Ruta | Descripción |
@@ -263,6 +270,38 @@ POST /suggest/meal
 ```
 
 La respuesta incluye `items`, `macros`, `remaining_before` / `remaining_after`, y `source` (`library` si escaló un favorito, o `generated` desde el catálogo).
+
+### Shopping List
+
+Suma automática de ingredientes de todos los planes en un rango (ej. la semana).
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| `GET` | `/shopping-list/?start_date=&end_date=` | Lista de compras del rango |
+| `GET` | `/shopping-list/week?week_start=` | Atajo: 7 días desde `week_start` |
+
+Si el plan semanal tiene 1.4 kg pollo, 800 g arroz, 12 huevos y 600 g zapallito:
+
+```http
+GET /shopping-list/?start_date=2026-07-13&end_date=2026-07-19
+```
+
+```json
+{
+  "plan_count": 7,
+  "lines": [
+    "800 g arroz",
+    "12 huevo",
+    "1.4 kg pollo",
+    "600 g zapallito"
+  ],
+  "items": [
+    { "name": "pollo", "quantity": 1.4, "unit": "kg", "grams": 1400, "display": "1.4 kg pollo" }
+  ]
+}
+```
+
+Une variantes (`huevo` / `huevos`) y muestra kg cuando el total ≥ 1000 g.
 
 ### Ejemplo: crear una comida
 
