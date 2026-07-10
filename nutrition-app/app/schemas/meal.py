@@ -145,3 +145,24 @@ class MealPlanSummary(BaseModel):
     totals: MacroTotals
     goal: Optional[DailyGoalResponse] = None
     remaining: Optional[MacroTotals] = None
+
+
+class MacroValidation(BaseModel):
+    nutrient: str
+    goal: float
+    actual: float
+    difference: float
+    allowed_delta: float
+    status: str
+
+
+class PlanGoalValidation(BaseModel):
+    plan_id: int
+    date: date
+    is_valid: bool
+    tolerance_percent: float
+    goal: DailyGoalResponse
+    totals: MacroTotals
+    remaining: MacroTotals
+    macros: list[MacroValidation]
+    message: str

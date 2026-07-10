@@ -18,7 +18,12 @@ from app.schemas.meal import MealPlanCreate
 from app.schemas.meal import MealPlanResponse
 from app.schemas.meal import MealPlanSummary
 from app.schemas.meal import MealResponse as MealResponseSchema
-from app.services.macro_engine import calculate_daily_totals, calculate_remaining
+from app.schemas.meal import PlanGoalValidation
+from app.services.macro_engine import (
+    calculate_daily_totals,
+    calculate_remaining,
+    validate_plan_against_goal,
+)
 
 router = APIRouter()
 
@@ -109,6 +114,44 @@ def get_meal_plan_summary(plan_id: int, db: Session = Depends(get_db)):
         totals=MacroTotals(**totals),
         goal=goal,
         remaining=MacroTotals(**remaining) if remaining else None,
+    )
+
+
+@router.get('/{plan_id}/validate', response_model=PlanGoalValidation, responses=NOT_FOUND)
+def validate_meal_plan(
+    plan_id: int,
+    tolerance_percent: float = 5.0,
+    db: Session = Depends(get_db),
+):
+    if tolerance_percent < 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='tolerance_percent must be >= 0',
+        )
+
+    plan = _get_plan_or_404(plan_id, db)
+    goal = db.query(DailyGoalModel).filter(DailyGoalModel.date == plan.date).first()
+    if not goal:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No daily goal found for {plan.date}',
+        )
+
+    meals = [meal for slot in plan.slots for meal in slot.meals]
+    totals = calculate_daily_totals(meals)
+    remaining = calculate_remaining(goal, totals)
+    result = validate_plan_against_goal(goal, totals, tolerance_percent=tolerance_percent)
+
+    return PlanGoalValidation(
+        plan_id=plan.id,
+        date=plan.date,
+        is_valid=result['is_valid'],
+        tolerance_percent=result['tolerance_percent'],
+        goal=goal,
+        totals=MacroTotals(**totals),
+        remaining=MacroTotals(**remaining),
+        macros=result['macros'],
+        message=result['message'],
     )
 
 
