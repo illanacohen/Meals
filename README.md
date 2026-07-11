@@ -46,10 +46,29 @@ El registro emocional, el contexto de vida y el módulo de coach están planific
 
 - **FastAPI** — framework web
 - **SQLAlchemy** — ORM
-- **SQLite** — base de datos local (`nutrition.db`)
+- **SQLite** (local) / **Postgres** (Docker / AWS vía `DATABASE_URL`)
 - **Alembic** — migraciones
 - **Pydantic** — validación de datos
 - **Uvicorn** — servidor ASGI
+
+## Configuración (punto 1 — listo para la nube)
+
+Variables de entorno (ver `.env.example`):
+
+| Variable | Default | Uso |
+|----------|---------|-----|
+| `DATABASE_URL` | `sqlite:///nutrition.db` | Postgres en cloud: `postgresql+psycopg://user:pass@host:5432/nutrition` |
+| `CORS_ORIGINS` | (vacío) | Frontends permitidos, separados por coma, o `*` |
+| `RUN_MIGRATIONS_ON_STARTUP` | off | `true` para correr `alembic upgrade head` al arrancar (ej. App Runner) |
+
+Local seguís igual (SQLite). Con Docker Compose la API usa Postgres automáticamente.
+
+```bash
+# Solo Postgres + API
+docker compose up --build
+```
+
+En el contenedor, `entrypoint.sh` aplica migraciones y levanta Uvicorn.
 
 ## Estructura del proyecto
 

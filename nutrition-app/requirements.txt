@@ -4,3 +4,5 @@ SQLAlchemy==2.0.51
 uvicorn
 pytest
 httpx2
+alembic
+psycopg[binary]>=3.1
