@@ -4,9 +4,9 @@
 
 <!-- When the web MVP exists, place logo + screenshot here (above the fold). -->
 
-Life Planner transforms long-term goals into structured daily execution.
+**Life Planner helps people stop negotiating with themselves and start executing the life they intentionally chose.**
 
-Instead of managing nutrition, workouts, and habits separately, everything converges into a single adaptive execution plan centered around **TODAY**.
+Instead of managing health, work, money, and habits as separate apps, everything converges into a single adaptive execution plan centered around **TODAY**.
 
 > **Plan → Execute → Adapt.**
 
@@ -18,16 +18,16 @@ Instead of managing nutrition, workouts, and habits separately, everything conve
                    │
                    ▼
                  TODAY
-        ┌──────────┼──────────┐
-        ▼          ▼          ▼
-   Nutrition    Workout     Habits
-        │          │          │
-        └──────────┼──────────┘
+        ┌──────────┼─────────────┬────────────┐
+        ▼          ▼             ▼            ▼
+     Health    Work & Study   Finances    Personal Life
+        │          │             │            │
+        └──────────┼─────────────┼────────────┘
                    ▼
                PROGRESS
                    │
                    ▼
-                 PLAN
+              PLAN ADAPTS
 ```
 
 *AI-assisted planning and adaptation are part of the roadmap.*
@@ -42,25 +42,26 @@ They fail because every day they have to renegotiate hundreds of small decisions
 
 - What should I eat?
 - Should I train today?
-- When should I work?
-- Can I skip this habit?
+- Which task matters most?
+- Can I postpone this?
+- Should I save or spend this money?
 - What should I do next?
 
-Life Planner reduces that cognitive load by turning long-term goals into a clear daily execution system—**TODAY**.
+That constant self-negotiation burns energy that should go into execution. Life Planner exists to reduce that friction.
 
 ---
 
 ## The Solution
 
-Life Planner goes beyond calorie tracking and workout logging by turning them into components of a unified execution plan.
+Life Planner is an execution system for intentional living.
 
-The hardest part of improving your health isn't knowing what to do—it's consistently executing the right actions every day. Life Planner reduces decision fatigue by turning long-term goals into a clear daily execution plan.
+Instead of helping people track isolated parts of their lives, it builds one adaptive plan that coordinates every area contributing to a long-term objective.
 
-The long-term north star is simple:
+The product isn't centered on nutrition, fitness, or productivity. It's centered on **execution**. Every domain exists only because it helps people become more consistent with who they want to become.
 
-**Choose a goal → receive a complete Plan → run TODAY → let the system propose adjustments.**
+The operating loop is simple:
 
-The product is about **execution**. Fitness is the first domain; pillars like money or study join the same Plan → TODAY loop only when they are designed to belong there.
+**Choose a goal → receive a complete Plan → run TODAY → let progress adapt the plan.**
 
 A useful filter for new features: *Does this help the user execute today's plan and stay aligned with their goal?* If not, it probably does not belong in Life Planner.
 
@@ -68,18 +69,32 @@ A useful filter for new features: *Does this help the user execute today's plan 
 
 ## Core pillars
 
-Life Planner treats wellbeing as multidimensional. Fitness is the first domain; new pillars join only when they fit the domain model and feed **TODAY**.
+Life Planner organizes life into interconnected domains that support the same long-term objective.
 
-In scope today (shipped or designed):
+Rather than tracking each area independently, every domain contributes to a single execution plan centered around **TODAY**.
 
-- **Nutrition**
-- **Training**
-- **Habits**
-- **Recovery & Sleep**
-- **Financial Wellness**
-- **Daily Planning (TODAY)**
+Current domains include:
 
-Each pillar contributes to the same execution plan instead of existing as an isolated tracker.
+- **Health**
+  - Nutrition
+  - Training
+  - Recovery & Sleep
+- **Personal Development**
+  - Habits
+  - Learning
+  - Deep Work
+- **Financial Wellbeing**
+  - Budget
+  - Spending
+  - Financial Goals
+- **Life Management**
+  - Daily Planning
+  - Routines
+  - Personal Projects
+
+Each domain exists to answer one question:
+
+**What should I do today to become the person I want to be?**
 
 ---
 
@@ -87,11 +102,11 @@ Each pillar contributes to the same execution plan instead of existing as an iso
 
 | Capability | Description |
 |------------|-------------|
-| **Goal-based planning** | Define outcomes (fat loss, muscle gain, maintenance, performance, habit focus) and turn them into time-boxed Plans. |
+| **Goal-based planning** | Define outcomes across life domains and turn them into time-boxed Plans. |
 | **Nutrition planning** | Macro targets, daily meal structure, recipes/library, and meal suggestions that fit remaining macros. |
 | **Workout planning** | Training programs structured by weeks, days, exercises, sets, and progression (domain models in place; APIs expanding). |
 | **Habit tracking** | Plan-scoped habits with completions—designed for linchpin behaviors and non-negotiable minimums. |
-| **Daily planner (TODAY)** | The home surface: one checklist where every active pillar executes together. |
+| **Daily planner (TODAY)** | The home surface: one checklist where every active domain executes together. |
 | **Progress tracking** | Weight, adherence, and objective entries that support weekly review. |
 | **AI Coach** | Roadmap: generate and revise Plans via reviewable proposals—not a free-form chat that bypasses domain rules. |
 | **Smart recommendations** | Meal suggestions from remaining macros; roadmap includes adaptation signals and proposal-based changes. |
@@ -311,4 +326,4 @@ Proprietary / TBD — update this section when you publish a license.
 
 ---
 
-**Life Planner** — Plan → Execute → Adapt. Everything runs through TODAY.
+**Life Planner** — stop negotiating with yourself. Execute TODAY.
