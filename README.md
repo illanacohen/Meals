@@ -1,13 +1,85 @@
 # Life Planner
 
-### AI-Powered Health & Performance Planner
+### AI-Powered Life Execution System
 
-Life Planner helps people **reach health and performance goals** through intelligent planning—not endless logging.
+<!-- When the web MVP exists, place logo + screenshot here (above the fold). -->
 
-Most tools ask you to record what you already did. Life Planner starts from the opposite direction: you define an objective, the system builds an executable **Plan** (nutrition, training, habits), and you run your day from a single checklist. Progress and context then feed smart adjustments—so the plan stays aligned with real life.
+Life Planner transforms long-term goals into structured daily execution.
 
-> **Plan → Execute → Adapt.**  
-> Nutrition, training, and habits are modules of one strategy—not separate apps.
+Instead of managing nutrition, workouts, and habits separately, everything converges into a single adaptive execution plan centered around **TODAY**.
+
+> **Plan → Execute → Adapt.**
+
+```text
+                 GOAL
+                   │
+                   ▼
+                 PLAN
+                   │
+                   ▼
+                 TODAY
+        ┌──────────┼──────────┐
+        ▼          ▼          ▼
+   Nutrition    Workout     Habits
+        │          │          │
+        └──────────┼──────────┘
+                   ▼
+               PROGRESS
+                   │
+                   ▼
+                 PLAN
+```
+
+*AI-assisted planning and adaptation are part of the roadmap.*
+
+---
+
+## The Problem
+
+Most people don't fail because they lack information.
+
+They fail because every day they have to renegotiate hundreds of small decisions:
+
+- What should I eat?
+- Should I train today?
+- When should I work?
+- Can I skip this habit?
+- What should I do next?
+
+Life Planner reduces that cognitive load by turning long-term goals into a clear daily execution system—**TODAY**.
+
+---
+
+## The Solution
+
+Life Planner goes beyond calorie tracking and workout logging by turning them into components of a unified execution plan.
+
+The hardest part of improving your health isn't knowing what to do—it's consistently executing the right actions every day. Life Planner reduces decision fatigue by turning long-term goals into a clear daily execution plan.
+
+The long-term north star is simple:
+
+**Choose a goal → receive a complete Plan → run TODAY → let the system propose adjustments.**
+
+The product is about **execution**. Fitness is the first domain; pillars like money or study join the same Plan → TODAY loop only when they are designed to belong there.
+
+A useful filter for new features: *Does this help the user execute today's plan and stay aligned with their goal?* If not, it probably does not belong in Life Planner.
+
+---
+
+## Core pillars
+
+Life Planner treats wellbeing as multidimensional. Fitness is the first domain; new pillars join only when they fit the domain model and feed **TODAY**.
+
+In scope today (shipped or designed):
+
+- **Nutrition**
+- **Training**
+- **Habits**
+- **Recovery & Sleep**
+- **Financial Wellness**
+- **Daily Planning (TODAY)**
+
+Each pillar contributes to the same execution plan instead of existing as an isolated tracker.
 
 ---
 
@@ -19,24 +91,11 @@ Most tools ask you to record what you already did. Life Planner starts from the 
 | **Nutrition planning** | Macro targets, daily meal structure, recipes/library, and meal suggestions that fit remaining macros. |
 | **Workout planning** | Training programs structured by weeks, days, exercises, sets, and progression (domain models in place; APIs expanding). |
 | **Habit tracking** | Plan-scoped habits with completions—designed for linchpin behaviors and non-negotiable minimums. |
-| **Daily planner** | A unified **TODAY** checklist so execution is one place, not three apps. |
+| **Daily planner (TODAY)** | The home surface: one checklist where every active pillar executes together. |
 | **Progress tracking** | Weight, adherence, and objective entries that support weekly review. |
-| **AI Coach** | Designed to generate and revise Plans via reviewable proposals—not a free-form chat that bypasses domain rules. |
+| **AI Coach** | Roadmap: generate and revise Plans via reviewable proposals—not a free-form chat that bypasses domain rules. |
 | **Smart recommendations** | Meal suggestions from remaining macros; roadmap includes adaptation signals and proposal-based changes. |
 | **Shopping lists** | Aggregate ingredients across planned days into a ready-to-shop list. |
-| **Future integrations** | Auth, multi-user, cloud object storage, CI/CD, and richer coach workflows. |
-
----
-
-## Product vision
-
-Life Planner is not a calorie counter or a workout logger.
-
-It is a **personal operating system for health and performance**: an intelligent layer that helps users **plan** a strategy, **execute** it day by day, and **adapt** when circumstances change—so willpower and constant renegotiation stop being the bottleneck.
-
-The long-term north star is simple:
-
-**Choose a goal → receive a complete Plan → run TODAY → let the system propose adjustments.**
 
 ---
 
@@ -114,13 +173,20 @@ Domain reference:
 - Workout services and APIs on top of existing models
 - Stronger Plan ↔ nutrition day binding
 
-### Planned
+### Planned — Product
 - Full AI Coach (generate Plan + `PlanProposal` accept/reject flow)
 - Adaptation engine (weekly rules → proposals)
 - Check-ins (structured reflection vs raw metrics)
-- Auth and multi-user tenancy
+- Recovery & sleep as a first-class pillar
+- Financial Wellness (budget wellbeing, enjoyment budget, goals)
 - Exercise catalog, richer progression
+- Calendar sync
 - Frontend clients and mobile UX
+
+### Planned — Platform
+- Authentication and multi-user tenancy
+- Notifications
+- Cloud object storage (e.g. S3)
 - CI/CD and production AWS topology
 
 ---
@@ -245,4 +311,4 @@ Proprietary / TBD — update this section when you publish a license.
 
 ---
 
-**Life Planner** — plan the strategy, execute the day, adapt with intelligence.
+**Life Planner** — Plan → Execute → Adapt. Everything runs through TODAY.
