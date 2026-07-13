@@ -89,9 +89,30 @@ Full product specification (philosophy, knowledge module, canvas editing, identi
 
 ---
 
+## The app must not become the work
+
+The number-one failure mode of productivity apps: **they become a job of their own.** If “organizing my life” means twenty minutes a day filling spreadsheets, scoring tasks, and arguing with an AI, the app joins the friction—it is no longer the solution.
+
+Users do not open Life Planner to chat or renegotiate. They open it to **execute** or to **log a deviation**. Friction data should be an almost invisible side effect of daily use—not a second career in self-administration.
+
+**Design principle: passive metrics + ultra-short active input.** Manage by exception. Freedom to log—never an obligation to perform for the software.
+
+| Mode | Meaning |
+|------|---------|
+| **Plan assumed running** | If the user says nothing, the system assumes the basic routine is flowing. Silence means *life is on plan*. |
+| **Interact only on friction or real change** | Open the app when something hurt, when a habit is costing too much, or when a deviation matters—*“I skipped reading today”* / *“I finished training at 11pm and wrecked my sleep.”* |
+| **Passive metrics** | Completions, timing, and adherence emerge from light use (or from integrations later)—not from daily questionnaires. |
+| **Ultra-short active input** | When input is needed, it is a tap or a one-line note—not a negotiation loop. |
+
+The product succeeds when it is **operational support for willpower**, not another inbox of chores.
+
+---
+
 ## Product principles
 
 - **Decide once, execute many times** — TODAY is the surface; the plan holds the decisions.
+- **Silence = on plan** — no daily theater of check-ins; speak up only for friction or intentional change.
+- **Passive metrics, minimal active input** — never make organizing life a second job.
 - **Edit the plan like a canvas** — replace a constraint (e.g. yogurt → alternatives) in a tap or two, without restarting a chat loop.
 - **Experience before explanation** — small personal experiments first; insight after living them, not lectures up front.
 - **One Daily Insight** — at most one idea per day (short read or clip). Never a content feed.
