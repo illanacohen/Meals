@@ -101,6 +101,10 @@ def _build_response(profile, calc, goal_id=None, message='') -> OnboardingRespon
 
 def _save_and_respond(db: Session, profile: UserProfile, create_goal: bool, message: str):
     db.flush()
+    # Onboarding is a producer of UserContext — never leave context stale.
+    from app.services.context import context_service
+
+    context_service.sync_from_profile(db, profile)
     calc = run_onboarding_calculations(profile)
     goal_id = None
     if create_goal:

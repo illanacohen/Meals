@@ -19,12 +19,15 @@ from app.models.meal import (  # noqa: F401
     MealTemplateItem,
 )
 from app.models.user_profile import UserProfile  # noqa: F401
+from app.models.context import UserContext  # noqa: F401
 from app.models.plan import (  # noqa: F401
     DailyTask,
     Habit,
     HabitCompletion,
+    Pillar,
     Plan,
     ProgressEntry,
+    TodayTask,
     WorkoutDay,
     WorkoutExercise,
     WorkoutProgram,
@@ -34,6 +37,12 @@ from app.models.planner import (  # noqa: F401
     DaySchedulePolicy,
     PlanTask,
     TaskTemplate,
+)
+from app.models.execution import (  # noqa: F401
+    DynamicExecutionItem,
+    ExecutionCompletion,
+    ExecutionItem,
+    PlanProposal,
 )
 
 

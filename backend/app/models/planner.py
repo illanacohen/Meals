@@ -92,6 +92,7 @@ class PlanTask(Base):
     plan_id = Column(Integer, ForeignKey('plans.id', ondelete='CASCADE'), nullable=False, index=True)
     template_id = Column(Integer, ForeignKey('task_templates.id', ondelete='SET NULL'), nullable=True)
     habit_id = Column(Integer, ForeignKey('habits.id', ondelete='SET NULL'), nullable=True)
+    pillar_id = Column(Integer, ForeignKey('pillars.id', ondelete='SET NULL'), nullable=True, index=True)
     title = Column(String, nullable=False)
     friction = Column(Integer, nullable=False, default=3)
     priority = Column(Integer, nullable=False, default=3)
@@ -107,4 +108,5 @@ class PlanTask(Base):
     active = Column(Boolean, nullable=False, default=True)
 
     plan = relationship('Plan', back_populates='plan_tasks')
+    pillar = relationship('Pillar', back_populates='plan_tasks')
     template = relationship('TaskTemplate', back_populates='plan_tasks')

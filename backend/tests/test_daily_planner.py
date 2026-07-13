@@ -4,7 +4,8 @@ from datetime import date, time
 
 from app.models.plan import Plan
 from app.services.planner.schedule import ensure_day_blocks, resolve_policy, waking_window
-from app.services.planner.seeding import HYGIENE_PACK, ensure_system_templates, seed_plan_hygiene_tasks
+from app.services.execution.seeding import seed_plan_hygiene_execution_items
+from app.services.planner.seeding import HYGIENE_PACK, ensure_system_templates
 
 
 def test_waking_window_same_day():
@@ -57,8 +58,8 @@ def test_hygiene_seed_idempotent(db_session):
     db_session.flush()
 
     ensure_system_templates(db_session)
-    first = seed_plan_hygiene_tasks(db_session, plan)
-    second = seed_plan_hygiene_tasks(db_session, plan)
+    first = seed_plan_hygiene_execution_items(db_session, plan)
+    second = seed_plan_hygiene_execution_items(db_session, plan)
     db_session.commit()
 
     assert len(first) == len(HYGIENE_PACK)

@@ -3,7 +3,7 @@
 Canonical product specification for Life Planner.  
 This is **philosophy and direction**, not a backlog of tickets. Implementation follows only when a concept is designed and approved.
 
-Related: [Domain model](../domain/DOMAIN.md) · [README](../../../README.md)
+Related: [Domain model](../domain/DOMAIN.md) · [Product evolution](PRODUCT_EVOLUTION.md) · [README](../../../README.md)
 
 ---
 
@@ -169,6 +169,14 @@ Before implementing anything, ask:
 4. Does it **reduce decision fatigue** (or reopen fewer decisions)?
 
 If the answer is no, it probably does not belong in Life Planner.
+
+---
+
+## Differentiator (one line)
+
+> Life Planner does not help organize tasks. It reduces the friction between who you want to become and the actions you must take today to become that person.
+
+How the product evolves from entity modules to this mental journey: [PRODUCT_EVOLUTION.md](PRODUCT_EVOLUTION.md).
 
 ---
 

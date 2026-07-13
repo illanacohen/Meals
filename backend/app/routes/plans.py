@@ -67,7 +67,25 @@ def create_meal_plan(plan: MealPlanCreate, db: Session = Depends(get_db)):
             detail=f'Meal plan already exists for {plan.date}',
         )
 
-    plan_db = MealPlanModel(date=plan.date, name=plan.name)
+    pillar_id = plan.pillar_id
+    if pillar_id is not None and plan.goal_plan_id is not None:
+        from app.models.plan import Plan as GoalPlan
+        from app.services.pillars.seeding import get_pillar_for_plan
+
+        goal = db.query(GoalPlan).filter(GoalPlan.id == plan.goal_plan_id).first()
+        if goal is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Goal plan not found')
+        try:
+            pillar_id = get_pillar_for_plan(db, goal, pillar_id).id
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+    plan_db = MealPlanModel(
+        date=plan.date,
+        name=plan.name,
+        goal_plan_id=plan.goal_plan_id,
+        pillar_id=pillar_id,
+    )
     plan_db.slots = [
         MealSlotModel(position=position, label=label)
         for position, label in DEFAULT_SLOT_LABELS

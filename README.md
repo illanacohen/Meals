@@ -8,7 +8,7 @@
 
 **Minimize self-negotiation.** Everything converges into one adaptive plan centered around **TODAY**—so you spend energy living the day, not reopening it.
 
-> **Plan → Execute → Adapt.**
+> **Plan → Execution Engine → TODAY → Adapt.**
 
 ```text
                  GOAL
@@ -17,17 +17,19 @@
                  PLAN
                    │
                    ▼
-                 TODAY
-        ┌──────────┼─────────────┬────────────┐
-        ▼          ▼             ▼            ▼
-     Health    Work & Study   Finances    Personal Life
-        │          │             │            │
-        └──────────┼─────────────┼────────────┘
-                   ▼
-               PROGRESS
-                   │
-                   ▼
-              PLAN ADAPTS
+            EXECUTION ENGINE
+              ▲            ▲
+              │            │
+        UserContext    Current Date
+              │
+              ▼
+              TODAY
+                │
+                ▼
+             Progress
+                │
+                ▼
+          Plan Adaptation
 ```
 
 *AI-assisted planning and adaptation are part of the roadmap.*
@@ -36,30 +38,43 @@
 
 ## The Problem
 
-Most people don't fail because they lack discipline, motivation, or information.
+Every human tries to project a better version of themselves and plan how to get there—from the note that says “diet and gym start tomorrow,” to the brand-new planner bought on January 1st. People want to change. They want order.
 
-They fail because of **constant self-negotiation**—hundreds of micro-decisions reopened every day:
+They don’t fail because they lack discipline, motivation, or information. They fail where the mind breaks **by design**—three historical friction points:
 
-- What should I eat?
-- Should I train today?
-- Which task matters most?
-- Can I postpone this?
-- Should I save or spend this money?
-- What should I do next?
+### 1. Decision fatigue (activation friction)
 
-That renegotiation often costs more energy than doing the thing. Life Planner exists to reduce that friction—not to lecture, guilt, or track for tracking’s sake.
+The brain burns enormous energy deciding *what* to do. If at 7:00 PM on a Monday you still have to ask: “What should I cook? Do I have the ingredients? Which muscle group was today?”—friction spikes high enough that dinner becomes delivery and the couch wins.
+
+### 2. Disconnect from the “future self”
+
+Sunday-you is logical and perfect (“I’ll train six days straight”). Wednesday-you, rainy, 6:00 AM, is emotional and wants to sleep. Plans written by the future-self optimist collide with the present-self who has to live them.
+
+### 3. All-or-nothing guilt
+
+Miss one day and the mind often abandons the whole process—“I already ruined it.” Perfection becomes the enemy of consistency.
+
+That renegotiation—hundreds of micro-decisions reopened every day—often costs more energy than doing the thing. Life Planner exists to reduce that friction—not to lecture, guilt, or track for tracking’s sake.
 
 ---
 
 ## The Solution
 
-Life Planner removes unnecessary decisions from your day by turning long-term goals into a **pre-decided plan** you run through **TODAY**.
+Life Planner is not an exotic idea. It is an **execution facilitator**: operational support for willpower. Human willpower is limited and unreliable; the software’s job is to **automate consistency**.
+
+The operating loop:
+
+**Goal → Plan → Execution Engine (Plan + UserContext + date) → TODAY → Progress → Plan Adaptation.**
+
+That loop attacks the three failure modes directly:
+
+| Friction | How Life Planner responds |
+|----------|---------------------------|
+| **Decision fatigue** | You don’t “assemble your day.” The Execution Engine already processed your **Plan** and **UserContext** (e.g. late workday, low energy) and returns a small set of actions: *don’t think—execute*. |
+| **Future-self disconnect** | TODAY is generated for *this* date and *this* context—not for Sunday’s idealized week. The plan holds the decisions; the engine projects what is realistic now. |
+| **All-or-nothing guilt** | Missing the gym is not a red X that ends the arc. The system recalculates (via **PlanProposal** / adaptation): *yesterday was hard—walk 10 minutes today and stay on course.* Stay pointed at the goal; don’t demand perfection. |
 
 Domains (health, work, money, personal life) are not the product. They are *how* clarity shows up: structure that answers today’s micro-decisions in advance so you don’t have to reopen them.
-
-The operating loop is simple:
-
-**Choose a goal → receive a complete Plan → run TODAY → let progress adapt the plan.**
 
 A useful filter for new features:
 
@@ -167,6 +182,7 @@ Domain reference:
 - [Gap analysis](backend/docs/domain/GAP_ANALYSIS.md)
 - [Migration plan](backend/docs/domain/MIGRATION_PLAN.md)
 - [Product direction](backend/docs/product/PRODUCT_DIRECTION.md) — Execution Psychology (canonical)
+- [Product evolution](backend/docs/product/PRODUCT_EVOLUTION.md) — TODAY as Execution Engine; mental journey over modules
 
 **Layering:** Models hold structure and simple invariants; repositories load aggregates; **services** own use cases (activate a plan, rebuild TODAY, accept a proposal). Routes stay thin.
 

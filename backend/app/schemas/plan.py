@@ -59,11 +59,13 @@ class HabitCreate(BaseModel):
     target_unit: Optional[str] = None
     time_of_day: Optional[str] = 'anytime'
     difficulty: Optional[str] = 'medium'
+    pillar_id: Optional[int] = None  # recommended; null allowed for BC
 
 
 class HabitResponse(BaseModel):
     id: int
     plan_id: int
+    pillar_id: Optional[int] = None
     name: str
     category: Optional[str] = None
     frequency: str
@@ -72,6 +74,37 @@ class HabitResponse(BaseModel):
     time_of_day: Optional[str] = None
     difficulty: Optional[str] = None
     is_active: bool
+
+    model_config = {'from_attributes': True}
+
+
+class PillarCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
+    enabled: bool = True
+    display_order: int = 0
+
+
+class PillarUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=100)
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
+    enabled: Optional[bool] = None
+    display_order: Optional[int] = None
+
+
+class PillarResponse(BaseModel):
+    id: int
+    plan_id: int
+    name: str
+    description: Optional[str] = None
+    icon: Optional[str] = None
+    color: Optional[str] = None
+    enabled: bool
+    display_order: int
 
     model_config = {'from_attributes': True}
 
@@ -89,6 +122,7 @@ class PlanResponse(BaseModel):
     user_profile_id: Optional[int] = None
     created_at: Optional[datetime] = None
     habits: list[HabitResponse] = Field(default_factory=list)
+    pillars: list[PillarResponse] = Field(default_factory=list)
 
     model_config = {'from_attributes': True}
 
@@ -98,9 +132,17 @@ class DailyTaskResponse(BaseModel):
     plan_id: int
     date: date
     title: str
-    task_type: str
+    pillar_id: Optional[int] = None
+    source_module: Optional[str] = None
+    source_entity: Optional[str] = None
     source_id: Optional[int] = None
+    priority: int = 3
+    status: str = 'pending'
+    # Backward-compatible fields
+    task_type: str
     plan_task_id: Optional[int] = None
+    execution_item_id: Optional[int] = None
+    dynamic_execution_item_id: Optional[int] = None
     block_type: Optional[str] = None
     estimated_duration_minutes: Optional[int] = None
     scheduled_time: Optional[datetime] = None
@@ -108,6 +150,10 @@ class DailyTaskResponse(BaseModel):
     order_index: int
 
     model_config = {'from_attributes': True}
+
+
+# Product name for the Execution Engine projection
+TodayTaskResponse = DailyTaskResponse
 
 
 class DayBlockResponse(BaseModel):

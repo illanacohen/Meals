@@ -35,6 +35,7 @@ class MealPlan(Base):
         nullable=True,
         index=True,
     )
+    pillar_id = Column(Integer, ForeignKey('pillars.id', ondelete='SET NULL'), nullable=True, index=True)
 
     slots = relationship(
         'MealSlot',
@@ -42,6 +43,7 @@ class MealPlan(Base):
         cascade='all, delete-orphan',
         order_by='MealSlot.position',
     )
+    pillar = relationship('Pillar')
 
 
 class MealSlot(Base):

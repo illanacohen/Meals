@@ -13,10 +13,21 @@ Approved in Domain Design Phase 1. Implementation of renames/migrations follows 
 
 ### User
 - **Responsibility:** Identity and stable preferences (who I am), not the active plan.
-- **Relations:** 1→N Goal; 1→N Plan; 1→0..1 ProfileDetails (anthropometrics / activity — today `UserProfile`).
+- **Relations:** 1→N Goal; 1→N Plan; 1→0..1 ProfileDetails (anthropometrics / activity — today `UserProfile`); 1→1 **UserContext**.
 - **Attributes:** id, auth ids (future), timezone, locale; food preferences / exclusions; optional execution mode.
 - **Rules:** Multiple Plans allowed; at most one Plan with status `active` (primary).
 - **Use cases:** Onboarding, preferences, list plans.
+
+### UserContext
+- **Responsibility:** Canonical **execution context** aggregate — everything the system knows about the user that influences planning and execution. Single source of truth for the Execution Engine and future domains (nutrition, workouts, finance, study, sleep, …).
+- **Relations:** 1→0..1 User (future); 0..1← UserProfile / onboarding as a *producer* only (not a consumer path).
+- **Attributes (groups):** identity (age, sex, height, weight); daily schedule (wake/sleep, working hours, preferred training/meal times, timezone); preferences; constraints (diet, equipment, injuries, budget, gym access, …); execution profile (energy, motivation, discipline, planning style, notifications); behavior signals (streaks, adherence).
+- **Rules:**
+  - Aggregate, not a DTO — consumers never read onboarding/profile/wearable sources directly.
+  - Producers converge here: onboarding, manual settings, wearables, calendar, AI Coach, questionnaires.
+  - Execution Engine is deterministic given **Plan + UserContext + current date**.
+- **Use cases:** `GET/PATCH /context`; feed Execution Engine; AI plan generation; Preference Engine long-term home.
+- **Implementation:** `app.models.context.UserContext` + `app.services.context.ContextService`.
 
 ### Goal
 - **Responsibility:** Measurable intention (“lose 8 kg”, “run 10k”, “sustain habits”).
@@ -129,12 +140,17 @@ Approved in Domain Design Phase 1. Implementation of renames/migrations follows 
 ```mermaid
 flowchart TB
   User[User]
+  UserContext[UserContext]
   Goal[Goal]
   Plan[Plan]
+  Engine[ExecutionEngine]
 
   User --> Goal
   User --> Plan
+  User --> UserContext
   Goal --> Plan
+  Plan --> Engine
+  UserContext --> Engine
 
   Plan --> NutritionPlan
   Plan --> WorkoutProgram
@@ -166,9 +182,11 @@ flowchart TB
 
 ```text
 services/
-  identity/      # User, Profile, preferences
+  identity/      # User, Profile (legacy producers)
+  context/       # UserContext aggregate — canonical execution context
   goals/         # Goal CRUD + intention validation
-  planner/       # Plan lifecycle + DailyTask projection + CheckIn
+  planner/       # Plan lifecycle + schedule/blocks
+  execution/     # Execution Engine (Plan + UserContext → TODAY)
   nutrition/     # NutritionPlan, days, meals, recipes, shopping, suggest
   workouts/      # WorkoutProgram, days, exercise catalog
   habits/        # Habit definitions + completions

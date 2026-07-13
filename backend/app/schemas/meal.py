@@ -129,6 +129,8 @@ class DailyGoalResponse(BaseModel):
 class MealPlanCreate(BaseModel):
     date: date
     name: Optional[str] = None
+    goal_plan_id: Optional[int] = None
+    pillar_id: Optional[int] = None
 
 
 class MealSlotResponse(BaseModel):
@@ -147,6 +149,8 @@ class MealPlanResponse(BaseModel):
     id: int
     date: date
     name: Optional[str] = None
+    goal_plan_id: Optional[int] = None
+    pillar_id: Optional[int] = None
     slots: list[MealSlotResponse] = Field(default_factory=list)
 
     model_config = {

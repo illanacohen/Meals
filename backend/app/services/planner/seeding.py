@@ -100,6 +100,7 @@ def seed_plan_hygiene_tasks(db: Session, plan: Plan) -> list[PlanTask]:
         pt = PlanTask(
             plan_id=plan.id,
             template_id=tmpl.id,
+            pillar_id=None,
             title=tmpl.title,
             friction=tmpl.default_friction,
             priority=tmpl.default_priority,
@@ -124,6 +125,7 @@ def ensure_habit_plan_task(db: Session, plan: Plan, habit: Habit) -> PlanTask:
     if existing:
         existing.title = habit.name
         existing.active = habit.is_active
+        existing.pillar_id = habit.pillar_id
         return existing
 
     friction = DIFFICULTY_FRICTION.get((habit.difficulty or 'medium').lower(), 3)
@@ -138,6 +140,7 @@ def ensure_habit_plan_task(db: Session, plan: Plan, habit: Habit) -> PlanTask:
     pt = PlanTask(
         plan_id=plan.id,
         habit_id=habit.id,
+        pillar_id=habit.pillar_id,
         title=habit.name,
         friction=friction,
         priority=3,
