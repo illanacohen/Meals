@@ -1,5 +1,16 @@
 from fastapi import APIRouter
-from app.routes import meals, plans, goals, onboarding, library, suggest, shopping, goal_plans, context
+from app.routes import (
+    meals,
+    plans,
+    goals,
+    onboarding,
+    library,
+    suggest,
+    shopping,
+    goal_plans,
+    context,
+    execution_items,
+)
 
 api_router = APIRouter()
 
@@ -8,6 +19,9 @@ api_router.include_router(goal_plans.router, prefix='/plans', tags=['Plans'])
 
 # Canonical execution context (Plan + UserContext → Execution Engine)
 api_router.include_router(context.router, prefix='/context', tags=['UserContext'])
+
+# Exception logs, visual substitutes, friction analysis
+api_router.include_router(execution_items.router, prefix='/execution-items', tags=['Execution Items'])
 
 # Módulo nutrición (legado: día alimenticio)
 api_router.include_router(plans.router, prefix='/meal-plans', tags=['Nutrition / Meal Days'])

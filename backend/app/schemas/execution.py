@@ -1,9 +1,16 @@
-"""Schemas for ExecutionItem, DynamicExecutionItem, PlanProposal."""
+"""Schemas for ExecutionItem, ExecutionLog, DynamicExecutionItem, PlanProposal."""
 
-from datetime import date, datetime
-from typing import Any, Optional
+from datetime import date, datetime, time
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
+
+ExecutionLogStatus = Literal[
+    'executed_smoothly',
+    'high_friction',
+    'skipped',
+    'shifted_schedule',
+]
 
 
 class ExecutionItemCreate(BaseModel):
@@ -70,6 +77,76 @@ class ExecutionItemResponse(BaseModel):
         )
 
 
+class ExecutionLogCreate(BaseModel):
+    date: date
+    status: ExecutionLogStatus
+    logged_at_time: Optional[time] = None
+    metadata: Optional[dict[str, Any]] = None
+
+
+class ExecutionLogResponse(BaseModel):
+    id: int
+    execution_item_id: int
+    date: date
+    status: ExecutionLogStatus
+    logged_at_time: Optional[time] = None
+    metadata: Optional[dict[str, Any]] = None
+
+    model_config = {'from_attributes': True}
+
+    @classmethod
+    def from_orm_log(cls, log: Any) -> 'ExecutionLogResponse':
+        return cls(
+            id=log.id,
+            execution_item_id=log.execution_item_id,
+            date=log.date,
+            status=log.status,
+            logged_at_time=log.logged_at_time,
+            metadata=log.log_metadata,
+        )
+
+
+class SubstituteOptionResponse(BaseModel):
+    id: str
+    title: str
+    source_module: str
+    metadata: dict[str, Any]
+    match_score: float
+    reason: str
+
+
+class ReplaceRequest(BaseModel):
+    alternative_id: str
+    as_proposal: bool = False
+
+
+class PlanProposalCreate(BaseModel):
+    rationale: Optional[str] = None
+    payload: dict[str, Any]
+    created_by: str = 'system'
+
+
+class PlanProposalUpdate(BaseModel):
+    status: str  # pending | accepted | rejected
+
+
+class PlanProposalResponse(BaseModel):
+    id: int
+    plan_id: int
+    status: str
+    rationale: Optional[str] = None
+    payload: dict[str, Any]
+    created_by: str
+    created_at: Optional[datetime] = None
+
+    model_config = {'from_attributes': True}
+
+
+class ReplaceResponse(BaseModel):
+    item: ExecutionItemResponse
+    proposal: PlanProposalResponse
+
+
 class DynamicExecutionItemCreate(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = None
@@ -98,28 +175,6 @@ class DynamicExecutionItemResponse(BaseModel):
     completed: bool
     created_by_user: bool
     priority: int
-    created_at: Optional[datetime] = None
-
-    model_config = {'from_attributes': True}
-
-
-class PlanProposalCreate(BaseModel):
-    rationale: Optional[str] = None
-    payload: dict[str, Any]
-    created_by: str = 'system'
-
-
-class PlanProposalUpdate(BaseModel):
-    status: str  # pending | accepted | rejected
-
-
-class PlanProposalResponse(BaseModel):
-    id: int
-    plan_id: int
-    status: str
-    rationale: Optional[str] = None
-    payload: dict[str, Any]
-    created_by: str
     created_at: Optional[datetime] = None
 
     model_config = {'from_attributes': True}

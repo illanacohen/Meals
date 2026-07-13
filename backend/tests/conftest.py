@@ -40,8 +40,8 @@ from app.models.planner import (  # noqa: F401
 )
 from app.models.execution import (  # noqa: F401
     DynamicExecutionItem,
-    ExecutionCompletion,
     ExecutionItem,
+    ExecutionLog,
     PlanProposal,
 )
 

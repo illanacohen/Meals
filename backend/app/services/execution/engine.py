@@ -142,7 +142,7 @@ def run_execution_engine(
                 task.priority = c.priority
                 task.estimated_duration_minutes = c.duration_minutes
                 task.order_index = order
-                # Completions live on ExecutionCompletion / DynamicExecutionItem
+                # Completions / exceptions live on ExecutionLog / DynamicExecutionItem
                 task.completed = completed
                 task.status = 'completed' if completed else 'pending'
                 if not completed:

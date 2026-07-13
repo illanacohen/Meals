@@ -6,9 +6,10 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.models.execution import ExecutionCompletion, ExecutionItem
+from app.models.execution import ExecutionItem, ExecutionLog
 from app.models.plan import Plan
 from app.services.execution.candidates import ExecutionCandidate, ExecutionContext
+from app.services.execution.log_semantics import log_means_completed
 from app.services.execution.recurrence import matches_recurrence
 from app.services.execution.registry import register_contributor
 from app.services.execution.seeding import ensure_habit_execution_item, seed_plan_hygiene_execution_items
@@ -45,12 +46,12 @@ def contribute_habits(
         .all()
     )
     ids = [i.id for i in items]
-    completions = {
-        c.execution_item_id: c
-        for c in db.query(ExecutionCompletion)
+    logs = {
+        log.execution_item_id: log
+        for log in db.query(ExecutionLog)
         .filter(
-            ExecutionCompletion.execution_item_id.in_(ids or [0]),
-            ExecutionCompletion.date == day,
+            ExecutionLog.execution_item_id.in_(ids or [0]),
+            ExecutionLog.date == day,
         )
         .all()
     }
@@ -60,7 +61,7 @@ def contribute_habits(
         if not matches_recurrence(item.recurrence_rule, day):
             continue
         preferred, friction, forbidden = _schedule_bits(item)
-        comp = completions.get(item.id)
+        log = logs.get(item.id)
         out.append(
             ExecutionCandidate(
                 title=item.title,
@@ -74,7 +75,7 @@ def contribute_habits(
                 preferred_block=preferred,
                 forbidden_blocks=forbidden,
                 execution_item_id=item.id,
-                completed=bool(comp.completed) if comp else False,
+                completed=log_means_completed(log.status if log else None),
             )
         )
     return out

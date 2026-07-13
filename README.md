@@ -72,9 +72,11 @@ That loop attacks the three failure modes directly:
 |----------|---------------------------|
 | **Decision fatigue** | You don’t “assemble your day.” The Execution Engine already processed your **Plan** and **UserContext** (e.g. late workday, low energy) and returns a small set of actions: *don’t think—execute*. |
 | **Future-self disconnect** | TODAY is generated for *this* date and *this* context—not for Sunday’s idealized week. The plan holds the decisions; the engine projects what is realistic now. |
-| **All-or-nothing guilt** | Missing the gym is not a red X that ends the arc. The system recalculates (via **PlanProposal** / adaptation): *yesterday was hard—walk 10 minutes today and stay on course.* Stay pointed at the goal; don’t demand perfection. |
+| **All-or-nothing guilt** | Missing the gym is not a red X that ends the arc. The **FrictionEngine** turns exception logs into reviewable **PlanProposal**s (e.g. reschedule / shorten)—the user stays on course without perfection theater. Proposals are not auto-applied; they are visual choices. |
 
 Domains (health, work, money, personal life) are not the product. They are *how* clarity shows up: structure that answers today’s micro-decisions in advance so you don’t have to reopen them.
+
+**Naming note:** A life **Goal** (intention) is product language; today the executable unit is a **Plan** with `goal_type`. The HTTP prefix `/goals` is unrelated—it stores **daily nutrition macro targets**.
 
 A useful filter for new features:
 
@@ -113,7 +115,7 @@ The product succeeds when it is **operational support for willpower**, not anoth
 - **Decide once, execute many times** — TODAY is the surface; the plan holds the decisions.
 - **Silence = on plan** — no daily theater of check-ins; speak up only for friction or intentional change.
 - **Passive metrics, minimal active input** — never make organizing life a second job.
-- **Edit the plan like a canvas** — replace a constraint (e.g. yogurt → alternatives) in a tap or two, without restarting a chat loop.
+- **Edit the plan like a canvas** — replace via structural alternatives (`/alternatives` + `/replace`); canvas UI still planned, no chat renegotiation loop.
 - **Experience before explanation** — small personal experiments first; insight after living them, not lectures up front.
 - **One Daily Insight** — at most one idea per day (short read or clip). Never a content feed.
 - **Measure decisions avoided** — progress is not only tasks checked; a future **Negotiation Count** surfaces how many decisions the plan already settled so you didn’t reopen them (product concept—not shipped).
@@ -126,21 +128,21 @@ Life Planner organizes life into interconnected domains that support the same lo
 
 Rather than tracking each area independently, every domain’s job is to **pre-answer today’s micro-decisions** for that area and feed a single execution plan centered around **TODAY**.
 
-Current domains include:
+**Product pillars (not all shipped)** — target map for the product; only some have backend APIs today:
 
-- **Health**
+- **Health** *(nutrition shipped; training models-only; recovery/sleep planned)*
   - Nutrition
   - Training
   - Recovery & Sleep
-- **Personal Development**
+- **Personal Development** *(habits shipped; learning / deep work planned)*
   - Habits
   - Learning
   - Deep Work
-- **Financial Wellbeing**
+- **Financial Wellbeing** *(vision)*
   - Budget
   - Spending
   - Financial Goals
-- **Life Management**
+- **Life Management** *(TODAY / execution / pillars shipped)*
   - Daily Planning
   - Routines
   - Personal Projects
@@ -153,23 +155,28 @@ Each domain exists to answer one question:
 
 ## Features
 
-| Capability | Description |
-|------------|-------------|
-| **Goal-based planning** | Define outcomes across life domains and turn them into time-boxed Plans. |
-| **Nutrition planning** | Macro targets, daily meal structure, recipes/library, and meal suggestions that fit remaining macros. |
-| **Workout planning** | Training programs structured by weeks, days, exercises, sets, and progression (domain models in place; APIs expanding). |
-| **Habit tracking** | Plan-scoped habits with completions—designed for linchpin behaviors and non-negotiable minimums. |
-| **Daily planner (TODAY)** | The home surface: one checklist where every active domain executes together. |
-| **Progress tracking** | Weight, adherence, and objective entries that support weekly review. |
-| **AI Coach** | Roadmap: constraint-aware plan editing and reviewable `PlanProposal`s—not a chat that forces you to renegotiate the whole plan. |
-| **Smart recommendations** | Meal suggestions from remaining macros; roadmap includes adaptation signals and proposal-based changes. |
-| **Shopping lists** | Aggregate ingredients across planned days into a ready-to-shop list. |
+| Capability | Status | Description |
+|------------|--------|-------------|
+| **Plan + TODAY** | **Shipped** | Time-boxed Plans; Execution Engine projects Plan + UserContext + date → TODAY. |
+| **UserContext** | **Shipped** | Canonical execution context (`GET/PATCH /context`)—engine input, not a second profile API for modules. |
+| **Execution items & logs** | **Shipped** | Long-lived Plan actions; optional **ExecutionLog** by exception (silence = on plan). |
+| **Visual Replace** | **Shipped (API)** | `GET …/alternatives` + `POST …/replace`—structural cards, not chat. Canvas UI still planned. |
+| **FrictionEngine → PlanProposal** | **Shipped (v0)** | Pattern detection over exception logs creates reviewable proposals; status accept/reject exists; apply-on-accept still planned. |
+| **Pillars (user-defined)** | **Shipped** | CRUD under `/plans/{id}/pillars`. |
+| **Habits on a Plan** | **Shipped** | Plan-scoped habits + TODAY projection (streak/non-negotiable UX still thin). |
+| **Nutrition toolkit** | **Shipped** | Meals, slots, daily macro `/goals`, library, suggest, shopping list. |
+| **Progress entries** | **Shipped** | Weight / adherence notes on a Plan. |
+| **Onboarding** | **Shipped** | Profile + BMR/TDEE; produces UserContext. |
+| **Workout programs** | **Models only** | Program → days → exercises in DB; **no workout HTTP API yet**. |
+| **Life Goal entity** | **Vision** | Intention aggregate not implemented; Plans carry `goal_type` today. |
+| **AI Coach (LLM)** | **Vision** | Infrastructure for proposals exists; LLM plan generation / coaching not shipped. |
+| **Finance / Sleep / Learning** | **Vision** | Product pillars without dedicated APIs. |
 
 ---
 
 ## Architecture
 
-The backend follows **lightweight domain-driven design**: high cohesion inside modules, low coupling between them, with **Plan** as the aggregate root of execution.
+The backend follows **lightweight domain-driven design**: high cohesion inside modules, low coupling between them, with **Plan** as the aggregate root of execution and **UserContext** as the canonical execution context.
 
 ```text
 backend/
@@ -181,17 +188,21 @@ backend/
 │   ├── schemas/             # Pydantic contracts
 │   ├── repositories/        # Aggregate data access
 │   ├── services/
-│   │   ├── planner/         # Plan lifecycle & daily checklist
+│   │   ├── execution/       # Execution Engine, FrictionEngine, substitution, TODAY
+│   │   ├── context/         # UserContext aggregate
+│   │   ├── pillars/         # User-defined pillars seeding helpers
+│   │   ├── planner/         # Schedule / day blocks (feeds execution)
 │   │   ├── nutrition/       # Macros, catalog, suggest, shopping
-│   │   ├── workouts/        # Training programs
-│   │   ├── habits/          # Habit definitions & completions
-│   │   ├── progress/        # Measurements & adherence
-│   │   └── ai/              # Coach / Plan proposals
-│   ├── integrations/        # External providers (LLM, email, …)
+│   │   ├── workouts/        # Scaffold (models live under models/plan)
+│   │   ├── habits/          # Scaffold (routes + execution modules own behavior)
+│   │   ├── progress/        # Scaffold (progress routes on Plan)
+│   │   └── ai/              # Scaffold (PlanProposal created by friction/user today)
+│   ├── integrations/        # Placeholder for LLM / email providers
 │   ├── utils/
 │   └── routes/              # Endpoint handlers by surface
 ├── alembic/                 # Migrations
 ├── docs/domain/             # Canonical domain model
+├── docs/product/            # Product direction & evolution
 ├── tests/
 ├── Dockerfile
 └── docker-compose.yml
@@ -205,7 +216,7 @@ Domain reference:
 - [Product direction](backend/docs/product/PRODUCT_DIRECTION.md) — Execution Psychology (canonical)
 - [Product evolution](backend/docs/product/PRODUCT_EVOLUTION.md) — TODAY as Execution Engine; mental journey over modules
 
-**Layering:** Models hold structure and simple invariants; repositories load aggregates; **services** own use cases (activate a plan, rebuild TODAY, accept a proposal). Routes stay thin.
+**Layering:** Models hold structure and simple invariants; repositories load aggregates; **services** own use cases (rebuild TODAY, build UserContext, analyze friction, apply visual replace). Routes stay thin.
 
 ---
 
@@ -229,29 +240,37 @@ Domain reference:
 ## Roadmap
 
 ### Implemented
-- Plan CRUD (goal type, duration, status)
-- Habits on a Plan + daily checklist (`/plans/{id}/today`)
+- Plan CRUD (`goal_type`, duration, status) — life **Goal** entity not separate yet
+- **UserContext** aggregate (`GET/PATCH /context`); onboarding is a producer
+- **Execution Engine**: Plan + UserContext + date → TODAY (`/plans/{id}/today`, `/execution/today`, `/execution/modules`)
+- **ExecutionItems** + **DynamicExecutionItems** on a Plan
+- **ExecutionLog** — optional exception logging (silence = on plan)
+- **Visual Replace** API (`/execution-items/{id}/alternatives`, `/replace`)
+- **FrictionEngine** v0 → creates **PlanProposal**s (`POST /execution-items/friction/analyze`)
+- **PlanProposal** list/create + accept/reject **status** (apply-on-accept not wired)
+- User-defined **Pillars** CRUD
+- Habits on a Plan + TODAY projection
 - Progress entries (weight, adherence)
-- Nutrition module: meals, daily slots, macro goals, recipe library, meal suggest, shopping list aggregation
-- Profile onboarding with BMR/TDEE and macro distribution
-- Workout domain models (program → days → exercises)
+- Nutrition module: meals, daily slots, macro targets via `/goals`, recipe library, meal suggest, shopping list
+- Profile onboarding with BMR/TDEE and macro distribution (syncs UserContext)
+- Workout **domain models** only (program → days → exercises)
 - Config for `DATABASE_URL`, CORS, optional migrate-on-startup
 - Docker Compose (API + Postgres)
 
 ### In progress
-- Domain alignment (Goal entity, NutritionPlan, unified TODAY across meals + workouts)
-- Workout services and APIs on top of existing models
-- Stronger Plan ↔ nutrition day binding
+- Domain alignment (life **Goal** entity, NutritionPlan naming, tighter Plan ↔ nutrition day binding)
+- Workout **services and HTTP APIs** on top of existing models
+- PlanProposal **apply** when status → accepted
+- Richer TODAY merge of meals + workouts as first-class execution modules
 
 ### Planned — Product
-- Constraint-aware plan editing (“replace” UX on the canvas—not chat-first renegotiation)
-- Negotiation Count / decisions avoided (product concept: surface what TODAY already settled)
+- Canvas UX for Replace / proposals (backend cards already exist)
+- Negotiation Count / decisions avoided (product concept)
 - Daily Insight + lightweight knowledge module (one idea → one action; never a feed)
 - Personal experiments (time-boxed trials; experience before explanation)
 - Identity-based reinforcement (not streak theater as the primary reward)
-- Imperfect-execution framing (momentum over all-or-nothing)
-- Full AI Coach (generate Plan + `PlanProposal` accept/reject; edits respect constraints)
-- Adaptation engine (weekly rules → proposals)
+- Full AI Coach (**LLM** generate Plan + constraint-aware proposals—not chat-first renegotiation)
+- Stronger adaptation rules (weekly reviews beyond FrictionEngine v0)
 - Check-ins (structured reflection vs raw metrics)
 - Recovery & sleep as a first-class pillar
 - Financial Wellness (budget wellbeing, enjoyment budget, goals)
@@ -359,13 +378,17 @@ Local and Compose already use the same app image pattern; cloud deploy is the ne
 
 | Area | Prefix | Notes |
 |------|--------|--------|
-| Plans | `/plans` | Aggregate root: habits, TODAY, progress |
-| Nutrition days | `/meal-plans` | Daily meal structure under the nutrition module |
+| Plans | `/plans` | Aggregate root: CRUD, habits, pillars, TODAY, progress |
+| Execution catalog | `/plans/{id}/execution-items`, `/dynamic-items`, `/proposals` | Plan actions, one-offs, reviewable proposals |
+| Execution Engine | `/plans/{id}/today`, `/execution/today`, `/execution/modules` | Deterministic TODAY projection |
+| Execution items (global) | `/execution-items` | Exception **logs**, **alternatives** / **replace**, **friction/analyze** |
+| UserContext | `/context` | Canonical execution context (`GET` / `PATCH`) |
+| Nutrition days | `/meal-plans` | Legacy name for daily meal structure (domain: NutritionDay) |
 | Meals / library / suggest / shopping | `/meals`, `/library`, `/suggest`, `/shopping-list` | Nutrition toolkit |
-| Macro targets | `/goals` | Daily macro targets (nutrition) |
-| Onboarding | `/onboarding` | Profile + energy/macro baseline |
+| Daily macros | `/goals` | Nutrition macro targets **only**—not life Goals |
+| Onboarding | `/onboarding` | Profile + energy/macro baseline; producer of UserContext |
 
-Explore the live contract at `/docs`.
+Explore the live contract at `/docs` (OpenAPI).
 
 ---
 
@@ -377,7 +400,7 @@ Contributions that respect the domain model are welcome:
 2. Keep **Plan** as the execution root; don’t introduce competing “plan” nouns for meal days.
 3. Put use cases in **services**, not fat route handlers.
 4. Add or update tests with behavior changes.
-5. Prefer reviewable **PlanProposal**-style changes for system/AI mutations when that layer lands.
+5. Prefer reviewable **PlanProposal**s for system/AI mutations; do not auto-mutate the Plan from chat or silent agents.
 6. Apply the product gate: reduce friction / execute TODAY / reinforce discipline or awareness / cut decision fatigue—or don’t build it.
 
 ---

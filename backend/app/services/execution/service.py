@@ -6,7 +6,7 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.models.execution import DynamicExecutionItem, ExecutionCompletion, ExecutionItem
+from app.models.execution import DynamicExecutionItem, ExecutionItem, ExecutionLog
 from app.models.plan import HabitCompletion, Plan, TodayTask
 from app.models.planner import DayBlock
 from app.services.execution.engine import run_execution_engine
@@ -22,6 +22,35 @@ def rebuild_today(db: Session, plan: Plan, day: date) -> tuple[list[DayBlock], l
     return run_execution_engine(db, plan, day)
 
 
+def _upsert_smooth_log(db: Session, execution_item_id: int, day: date) -> None:
+    row = (
+        db.query(ExecutionLog)
+        .filter(ExecutionLog.execution_item_id == execution_item_id, ExecutionLog.date == day)
+        .first()
+    )
+    if row is None:
+        db.add(
+            ExecutionLog(
+                execution_item_id=execution_item_id,
+                date=day,
+                status='executed_smoothly',
+            )
+        )
+    else:
+        row.status = 'executed_smoothly'
+
+
+def _clear_log(db: Session, execution_item_id: int, day: date) -> None:
+    """Restore silence (on-plan assumption) by removing the exception log."""
+    row = (
+        db.query(ExecutionLog)
+        .filter(ExecutionLog.execution_item_id == execution_item_id, ExecutionLog.date == day)
+        .first()
+    )
+    if row is not None:
+        db.delete(row)
+
+
 def toggle_today_task(
     db: Session,
     plan: Plan,
@@ -29,31 +58,17 @@ def toggle_today_task(
     completed: bool,
     day: date,
 ) -> tuple[list[DayBlock], list[TodayTask]]:
-    """Toggle a TODAY projection row; persist completion on Plan-domain entities."""
+    """Toggle a TODAY projection row; persist optional log / habit completion."""
     task.completed = completed
     task.status = 'completed' if completed else 'pending'
 
     if task.execution_item_id:
         ei = db.get(ExecutionItem, task.execution_item_id)
         if ei:
-            row = (
-                db.query(ExecutionCompletion)
-                .filter(
-                    ExecutionCompletion.execution_item_id == ei.id,
-                    ExecutionCompletion.date == day,
-                )
-                .first()
-            )
-            if row is None:
-                db.add(
-                    ExecutionCompletion(
-                        execution_item_id=ei.id,
-                        date=day,
-                        completed=completed,
-                    )
-                )
+            if completed:
+                _upsert_smooth_log(db, ei.id, day)
             else:
-                row.completed = completed
+                _clear_log(db, ei.id, day)
 
             if ei.habit_id:
                 hc = (

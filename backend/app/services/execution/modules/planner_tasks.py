@@ -6,9 +6,10 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from app.models.execution import ExecutionCompletion, ExecutionItem
+from app.models.execution import ExecutionItem, ExecutionLog
 from app.models.plan import Plan
 from app.services.execution.candidates import ExecutionCandidate, ExecutionContext
+from app.services.execution.log_semantics import log_means_completed
 from app.services.execution.recurrence import matches_recurrence
 from app.services.execution.registry import register_contributor
 from app.services.execution.seeding import seed_plan_hygiene_execution_items
@@ -41,12 +42,12 @@ def contribute_planner_tasks(
         .all()
     )
     ids = [i.id for i in items]
-    completions = {
-        c.execution_item_id: c
-        for c in db.query(ExecutionCompletion)
+    logs = {
+        log.execution_item_id: log
+        for log in db.query(ExecutionLog)
         .filter(
-            ExecutionCompletion.execution_item_id.in_(ids or [0]),
-            ExecutionCompletion.date == day,
+            ExecutionLog.execution_item_id.in_(ids or [0]),
+            ExecutionLog.date == day,
         )
         .all()
     }
@@ -57,7 +58,16 @@ def contribute_planner_tasks(
             continue
         preferred, friction, forbidden = _schedule_bits(item)
         meta = item.item_metadata or {}
-        comp = completions.get(item.id)
+        # Prefer schedule_rule block overrides from substituted metadata
+        if meta.get('preferred_block'):
+            preferred = str(meta['preferred_block'])
+        if meta.get('friction') is not None:
+            friction = int(meta['friction'])
+        if meta.get('estimated_duration') is not None:
+            duration = int(meta['estimated_duration'])
+        else:
+            duration = item.estimated_duration
+        log = logs.get(item.id)
         out.append(
             ExecutionCandidate(
                 title=item.title,
@@ -67,11 +77,11 @@ def contribute_planner_tasks(
                 source_id=item.id,
                 priority=item.priority,
                 friction=friction,
-                duration_minutes=item.estimated_duration,
+                duration_minutes=duration,
                 preferred_block=preferred,
                 forbidden_blocks=forbidden,
                 execution_item_id=item.id,
-                completed=bool(comp.completed) if comp else False,
+                completed=log_means_completed(log.status if log else None),
                 category=meta.get('category'),
             )
         )

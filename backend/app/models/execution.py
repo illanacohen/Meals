@@ -1,4 +1,4 @@
-"""Plan-centric execution domain: long-lived items, dynamic tasks, proposals."""
+"""Plan-centric execution domain: long-lived items, exception logs, proposals."""
 
 from sqlalchemy import (
     Boolean,
@@ -10,12 +10,21 @@ from sqlalchemy import (
     JSON,
     String,
     Text,
+    Time,
     UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
+
+# Exception-driven statuses. Absence of a log for a date = neutral / on-plan.
+EXECUTION_LOG_STATUSES = (
+    'executed_smoothly',
+    'high_friction',
+    'skipped',
+    'shifted_schedule',
+)
 
 
 class ExecutionItem(Base):
@@ -30,7 +39,7 @@ class ExecutionItem(Base):
     title = Column(String, nullable=False)
     description = Column(Text, nullable=True)
     recurrence_rule = Column(String, nullable=False, default='daily')  # daily | weekdays | weekly
-    schedule_rule = Column(JSON, nullable=True)  # preferred_block, friction, etc.
+    schedule_rule = Column(JSON, nullable=True)  # preferred_block, friction, preferred_time, etc.
     priority = Column(Integer, nullable=False, default=3)
     estimated_duration = Column(Integer, nullable=False, default=5)
     active = Column(Boolean, nullable=False, default=True)
@@ -40,19 +49,23 @@ class ExecutionItem(Base):
 
     plan = relationship('Plan', back_populates='execution_items')
     pillar = relationship('Pillar', back_populates='execution_items')
-    completions = relationship(
-        'ExecutionCompletion',
+    logs = relationship(
+        'ExecutionLog',
         back_populates='execution_item',
         cascade='all, delete-orphan',
     )
 
 
-class ExecutionCompletion(Base):
-    """Per-date completion of a planned ExecutionItem (not the item itself)."""
+class ExecutionLog(Base):
+    """Optional exception log for a planned item on a date.
 
-    __tablename__ = 'execution_completions'
+    Users log only when something hurt, was skipped, or shifted.
+    No row for a date means neutral / plan assumed running.
+    """
+
+    __tablename__ = 'execution_logs'
     __table_args__ = (
-        UniqueConstraint('execution_item_id', 'date', name='uq_execution_completions_item_date'),
+        UniqueConstraint('execution_item_id', 'date', name='uq_execution_logs_item_date'),
     )
 
     id = Column(Integer, primary_key=True, index=True)
@@ -63,10 +76,11 @@ class ExecutionCompletion(Base):
         index=True,
     )
     date = Column(Date, nullable=False, index=True)
-    completed = Column(Boolean, nullable=False, default=True)
-    notes = Column(String, nullable=True)
+    status = Column(String, nullable=False, default='executed_smoothly')
+    logged_at_time = Column(Time, nullable=True)
+    log_metadata = Column('metadata', JSON, nullable=True)
 
-    execution_item = relationship('ExecutionItem', back_populates='completions')
+    execution_item = relationship('ExecutionItem', back_populates='logs')
 
 
 class DynamicExecutionItem(Base):
@@ -90,7 +104,7 @@ class DynamicExecutionItem(Base):
 
 
 class PlanProposal(Base):
-    """Reviewable change proposal for a Plan — never auto-applied."""
+    """Reviewable change proposal for a Plan — never auto-applied by the engine."""
 
     __tablename__ = 'plan_proposals'
 
@@ -99,7 +113,7 @@ class PlanProposal(Base):
     status = Column(String, nullable=False, default='pending')  # pending | accepted | rejected
     rationale = Column(Text, nullable=True)
     payload = Column(JSON, nullable=False, default=dict)
-    created_by = Column(String, nullable=False, default='system')  # ai | system | user
+    created_by = Column(String, nullable=False, default='system')  # ai | system | user | friction_engine
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     plan = relationship('Plan', back_populates='plan_proposals')
