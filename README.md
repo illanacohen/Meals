@@ -4,9 +4,9 @@
 
 <!-- When the web MVP exists, place logo + screenshot here (above the fold). -->
 
-**Life Planner helps people stop negotiating with themselves and start executing the life they intentionally chose.**
+**Life Planner is not designed to tell people what to do. It helps them build enough clarity that executing their own decisions becomes easier than renegotiating them.**
 
-Instead of managing health, work, money, and habits as separate apps, everything converges into a single adaptive execution plan centered around **TODAY**.
+**Minimize self-negotiation.** Everything converges into one adaptive plan centered around **TODAY**—so you spend energy living the day, not reopening it.
 
 > **Plan → Execute → Adapt.**
 
@@ -36,9 +36,9 @@ Instead of managing health, work, money, and habits as separate apps, everything
 
 ## The Problem
 
-Most people don't fail because they lack information.
+Most people don't fail because they lack discipline, motivation, or information.
 
-They fail because every day they have to renegotiate hundreds of small decisions:
+They fail because of **constant self-negotiation**—hundreds of micro-decisions reopened every day:
 
 - What should I eat?
 - Should I train today?
@@ -47,23 +47,40 @@ They fail because every day they have to renegotiate hundreds of small decisions
 - Should I save or spend this money?
 - What should I do next?
 
-That constant self-negotiation burns energy that should go into execution. Life Planner exists to reduce that friction.
+That renegotiation often costs more energy than doing the thing. Life Planner exists to reduce that friction—not to lecture, guilt, or track for tracking’s sake.
 
 ---
 
 ## The Solution
 
-Life Planner is an execution system for intentional living.
+Life Planner removes unnecessary decisions from your day by turning long-term goals into a **pre-decided plan** you run through **TODAY**.
 
-Instead of helping people track isolated parts of their lives, it builds one adaptive plan that coordinates every area contributing to a long-term objective.
-
-The product isn't centered on nutrition, fitness, or productivity. It's centered on **execution**. Every domain exists only because it helps people become more consistent with who they want to become.
+Domains (health, work, money, personal life) are not the product. They are *how* clarity shows up: structure that answers today’s micro-decisions in advance so you don’t have to reopen them.
 
 The operating loop is simple:
 
 **Choose a goal → receive a complete Plan → run TODAY → let progress adapt the plan.**
 
-A useful filter for new features: *Does this help the user execute today's plan and stay aligned with their goal?* If not, it probably does not belong in Life Planner.
+A useful filter for new features:
+
+1. Does this **reduce friction**?
+2. Does it help the user **execute today’s plan**?
+3. Does it reinforce **discipline or self-awareness**?
+4. Does it **reduce decision fatigue**?
+
+If the answer is no, it probably does not belong in Life Planner.
+
+Full product specification (philosophy, knowledge module, canvas editing, identity vs streaks, imperfect execution): [`backend/docs/product/PRODUCT_DIRECTION.md`](backend/docs/product/PRODUCT_DIRECTION.md).
+
+---
+
+## Product principles
+
+- **Decide once, execute many times** — TODAY is the surface; the plan holds the decisions.
+- **Edit the plan like a canvas** — replace a constraint (e.g. yogurt → alternatives) in a tap or two, without restarting a chat loop.
+- **Experience before explanation** — small personal experiments first; insight after living them, not lectures up front.
+- **One Daily Insight** — at most one idea per day (short read or clip). Never a content feed.
+- **Measure decisions avoided** — progress is not only tasks checked; a future **Negotiation Count** surfaces how many decisions the plan already settled so you didn’t reopen them (product concept—not shipped).
 
 ---
 
@@ -71,7 +88,7 @@ A useful filter for new features: *Does this help the user execute today's plan 
 
 Life Planner organizes life into interconnected domains that support the same long-term objective.
 
-Rather than tracking each area independently, every domain contributes to a single execution plan centered around **TODAY**.
+Rather than tracking each area independently, every domain’s job is to **pre-answer today’s micro-decisions** for that area and feed a single execution plan centered around **TODAY**.
 
 Current domains include:
 
@@ -108,7 +125,7 @@ Each domain exists to answer one question:
 | **Habit tracking** | Plan-scoped habits with completions—designed for linchpin behaviors and non-negotiable minimums. |
 | **Daily planner (TODAY)** | The home surface: one checklist where every active domain executes together. |
 | **Progress tracking** | Weight, adherence, and objective entries that support weekly review. |
-| **AI Coach** | Roadmap: generate and revise Plans via reviewable proposals—not a free-form chat that bypasses domain rules. |
+| **AI Coach** | Roadmap: constraint-aware plan editing and reviewable `PlanProposal`s—not a chat that forces you to renegotiate the whole plan. |
 | **Smart recommendations** | Meal suggestions from remaining macros; roadmap includes adaptation signals and proposal-based changes. |
 | **Shopping lists** | Aggregate ingredients across planned days into a ready-to-shop list. |
 
@@ -149,6 +166,7 @@ Domain reference:
 - [Domain model](backend/docs/domain/DOMAIN.md)
 - [Gap analysis](backend/docs/domain/GAP_ANALYSIS.md)
 - [Migration plan](backend/docs/domain/MIGRATION_PLAN.md)
+- [Product direction](backend/docs/product/PRODUCT_DIRECTION.md) — Execution Psychology (canonical)
 
 **Layering:** Models hold structure and simple invariants; repositories load aggregates; **services** own use cases (activate a plan, rebuild TODAY, accept a proposal). Routes stay thin.
 
@@ -189,7 +207,13 @@ Domain reference:
 - Stronger Plan ↔ nutrition day binding
 
 ### Planned — Product
-- Full AI Coach (generate Plan + `PlanProposal` accept/reject flow)
+- Constraint-aware plan editing (“replace” UX on the canvas—not chat-first renegotiation)
+- Negotiation Count / decisions avoided (product concept: surface what TODAY already settled)
+- Daily Insight + lightweight knowledge module (one idea → one action; never a feed)
+- Personal experiments (time-boxed trials; experience before explanation)
+- Identity-based reinforcement (not streak theater as the primary reward)
+- Imperfect-execution framing (momentum over all-or-nothing)
+- Full AI Coach (generate Plan + `PlanProposal` accept/reject; edits respect constraints)
 - Adaptation engine (weekly rules → proposals)
 - Check-ins (structured reflection vs raw metrics)
 - Recovery & sleep as a first-class pillar
@@ -312,11 +336,12 @@ Explore the live contract at `/docs`.
 
 Contributions that respect the domain model are welcome:
 
-1. Read [`docs/domain/DOMAIN.md`](backend/docs/domain/DOMAIN.md).
+1. Read [`docs/domain/DOMAIN.md`](backend/docs/domain/DOMAIN.md) and [`docs/product/PRODUCT_DIRECTION.md`](backend/docs/product/PRODUCT_DIRECTION.md).
 2. Keep **Plan** as the execution root; don’t introduce competing “plan” nouns for meal days.
 3. Put use cases in **services**, not fat route handlers.
 4. Add or update tests with behavior changes.
 5. Prefer reviewable **PlanProposal**-style changes for system/AI mutations when that layer lands.
+6. Apply the product gate: reduce friction / execute TODAY / reinforce discipline or awareness / cut decision fatigue—or don’t build it.
 
 ---
 
@@ -326,4 +351,4 @@ Proprietary / TBD — update this section when you publish a license.
 
 ---
 
-**Life Planner** — stop negotiating with yourself. Execute TODAY.
+**Life Planner** — minimize self-negotiation. Decide once. Execute TODAY.
